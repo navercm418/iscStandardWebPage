@@ -1,26 +1,30 @@
 <html>
-<head>
-    <title>Record Check</title>
-</head>
+<head><title>CSP Record Check</title></head>
 <body>
 
 <form method="post">
     <label>Enter ID:</label>
-    <input type="text" name="inputName" value="">
-    <input type="submit" value="Check">
+    <input type="text" name="inputName" />
+    <input type="submit" name="doCheck" value="Check" />
 </form>
 
-<%
-    Set id = %request.Data("inputName")
-    If id'="" {
-        // Check if global node exists
-        If $D(^MyData(id)) {
-            Write "<p style='color:red;font-weight:bold;'>Exists!</p>"
-        } Else {
-            Write "<p style='color:green;'>Not found.</p>"
+<!-- Only render result after button click -->
+#(..CheckRecord())#
+
+<script language="cache" runat="server" method="CheckRecord">
+    NEW id
+    ; only run if button was pressed
+    IF %request.Data("doCheck")'="" {
+        SET id = %request.Data("inputName")
+        IF id'="" {
+            IF $DATA(^MyData(id)) {
+                WRITE "<p style=""color:red;font-weight:bold;"">Exists!</p>"
+            } ELSE {
+                WRITE "<p style=""color:green;"">Not found.</p>"
+            }
         }
     }
-%>
+</script>
 
 </body>
 </html>
