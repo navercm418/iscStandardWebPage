@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InterSystems IRIS - Data Management Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #e0e6ed;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .header h1 {
+            color: #4fc3f7;
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(79, 195, 247, 0.3);
+        }
+
+        .header p {
+            color: #b0bec5;
+            font-size: 1.1rem;
+        }
+
+        .form-section {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .form-section h2 {
+            color: #81c784;
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(129, 199, 132, 0.3);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            color: #cfd8dc;
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: #ffffff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .form-input::placeholder, .form-textarea::placeholder {
+            color: #90a4ae;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            border-color: #4fc3f7;
+            box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.2);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #29b6f6 0%, #0288d1 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 195, 247, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #81c784 0%, #66bb6a 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(129, 199, 132, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffb74d 0%, #ffa726 100%);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #ffa726 0%, #ff9800 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 183, 77, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e57373 0%, #ef5350 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #ef5350 0%, #f44336 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(229, 115, 115, 0.4);
+        }
+
+        .status-panel {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .status-panel h3 {
+            color: #4fc3f7;
+            margin-bottom: 15px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-value {
+            color: #81c784;
+            font-weight: 600;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .checkbox {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .checkbox:checked {
+            background: #4fc3f7;
+            border-color: #4fc3f7;
+        }
+
+        .checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            top: -2px;
+            left: 3px;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>InterSystems IRIS</h1>
+            <p>Data Management Portal - Advanced Configuration</p>
+        </div>
+
+        <!-- User Information Section -->
+        <div class="form-section">
+            <h2>User Information</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" class="form-input" placeholder="Enter username">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" class="form-input" placeholder="user@company.com">
+                </div>
+                <div class="form-group">
+                    <label for="role">User Role</label>
+                    <select id="role" class="form-select">
+                        <option value="">Select a role</option>
+                        <option value="admin">System Administrator</option>
+                        <option value="developer">Developer</option>
+                        <option value="analyst">Data Analyst</option>
+                        <option value="viewer">Read-Only User</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="department">Department</label>
+                    <select id="department" class="form-select">
+                        <option value="">Select department</option>
+                        <option value="it">Information Technology</option>
+                        <option value="finance">Finance</option>
+                        <option value="hr">Human Resources</option>
+                        <option value="operations">Operations</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="active" class="checkbox">
+                <label for="active">Active User Account</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="notifications" class="checkbox">
+                <label for="notifications">Enable Email Notifications</label>
+            </div>
+        </div>
+
+        <!-- Database Configuration Section -->
+        <div class="form-section">
+            <h2>Database Configuration</h2>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="namespace">Namespace</label>
+                    <input type="text" id="namespace" class="form-input" placeholder="USER" value="USER">
+                </div>
+                <div class="form-group">
+                    <label for="database">Database</label>
+                    <select id="database" class="form-select">
+                        <option value="">Select database</option>
+                        <option value="user">USER</option>
+                        <option value="samples">SAMPLES</option>
+                        <option value="hslib">HSLIB</option>
+                        <option value="hssys">HSSYS</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="server">Server Instance</label>
+                    <input type="text" id="server" class="form-input" placeholder="localhost:1972">
+                </div>
+                <div class="form-group">
+                    <label for="timeout">Connection Timeout (seconds)</label>
+                    <input type="number" id="timeout" class="form-input" value="30">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Configuration Description</label>
+                <textarea id="description" class="form-textarea" placeholder="Enter a detailed description of this configuration..."></textarea>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="testConnection()">Test Connection</button>
+                <button class="btn btn-success" onclick="saveConfig()">Save Configuration</button>
+                <button class="btn btn-warning" onclick="exportConfig()">Export Settings</button>
+                <button class="btn btn-danger" onclick="resetForm()">Reset Form</button>
+            </div>
+        </div>
+
+        <!-- System Status Panel -->
+        <div class="form-section">
+            <h2>System Status</h2>
+            <div class="status-panel">
+                <h3>Current System Information</h3>
+                <div class="status-item">
+                    <span>IRIS Version:</span>
+                    <span class="status-value" id="iris-version">2024.1.0</span>
+                </div>
+                <div class="status-item">
+                    <span>License Units Used:</span>
+                    <span class="status-value" id="license-units">245 / 1000</span>
+                </div>
+                <div class="status-item">
+                    <span>Active Processes:</span>
+                    <span class="status-value" id="active-processes">12</span>
+                </div>
+                <div class="status-item">
+                    <span>Memory Usage:</span>
+                    <span class="status-value" id="memory-usage">2.1 GB</span>
+                </div>
+                <div class="status-item">
+                    <span>System Status:</span>
+                    <span class="status-value" id="system-status">Online</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Form validation and interaction functions
+        function testConnection() {
+            const server = document.getElementById('server').value;
+            const namespace = document.getElementById('namespace').value;
+            
+            if (!server || !namespace) {
+                alert('Please enter both server and namespace information.');
+                return;
+            }
+            
+            // Simulate connection test
+            const button = event.target;
+            const originalText = button.textContent;
+            button.textContent = 'Testing...';
+            button.disabled = true;
+            
+            setTimeout(() => {
+                alert('Connection test successful! Connected to ' + server + '/' + namespace);
+                button.textContent = originalText;
+                button.disabled = false;
+            }, 2000);
+        }
+
+        function saveConfig() {
+            const formData = {
+                username: document.getElementById('username').value,
+                email: document.getElementById('email').value,
+                role: document.getElementById('role').value,
+                department: document.getElementById('department').value,
+                namespace: document.getElementById('namespace').value,
+                database: document.getElementById('database').value,
+                server: document.getElementById('server').value,
+                timeout: document.getElementById('timeout').value,
+                description: document.getElementById('description').value,
+                active: document.getElementById('active').checked,
+                notifications: document.getElementById('notifications').checked
+            };
+            
+            // Validate required fields
+            if (!formData.username || !formData.email || !formData.role) {
+                alert('Please fill in all required fields (Username, Email, Role).');
+                return;
+            }
+            
+            console.log('Configuration saved:', formData);
+            alert('Configuration saved successfully!');
+        }
+
+        function exportConfig() {
+            const config = {
+                timestamp: new Date().toISOString(),
+                username: document.getElementById('username').value,
+                email: document.getElementById('email').value,
+                role: document.getElementById('role').value,
+                department: document.getElementById('department').value,
+                namespace: document.getElementById('namespace').value,
+                database: document.getElementById('database').value,
+                server: document.getElementById('server').value,
+                timeout: document.getElementById('timeout').value,
+                description: document.getElementById('description').value
+            };
+            
+            const dataStr = JSON.stringify(config, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'iris_config_' + new Date().toISOString().slice(0, 10) + '.json';
+            link.click();
+            
+            URL.revokeObjectURL(url);
+        }
+
+        function resetForm() {
+            if (confirm('Are you sure you want to reset all form fields?')) {
+                document.querySelectorAll('input, select, textarea').forEach(element => {
+                    if (element.type === 'checkbox') {
+                        element.checked = false;
+                    } else {
+                        element.value = '';
+                    }
+                });
+                
+                // Reset default values
+                document.getElementById('namespace').value = 'USER';
+                document.getElementById('timeout').value = '30';
+                
+                alert('Form has been reset to default values.');
+            }
+        }
+
+        // Add some interactive effects
+        document.querySelectorAll('.form-input, .form-select, .form-textarea').forEach(element => {
+            element.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+                this.parentElement.style.transition = 'transform 0.2s ease';
+            });
+            
+            element.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+
+        // Simulate real-time status updates
+        function updateSystemStatus() {
+            const processes = Math.floor(Math.random() * 20) + 8;
+            const memory = (Math.random() * 2 + 1.5).toFixed(1);
+            
+            document.getElementById('active-processes').textContent = processes;
+            document.getElementById('memory-usage').textContent = memory + ' GB';
+        }
+
+        // Update status every 10 seconds
+        setInterval(updateSystemStatus, 10000);
+
+        // Initialize form
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('InterSystems IRIS CSP Page loaded successfully');
+            
+            // Set some default values
+            document.getElementById('active').checked = true;
+            document.getElementById('notifications').checked = true;
+        });
+    </script>
+</body>
+</html>
