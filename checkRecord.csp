@@ -1,0 +1,26 @@
+<html>
+<head>
+    <title>Record Check</title>
+</head>
+<body>
+
+<form method="post">
+    <label>Enter ID:</label>
+    <input type="text" name="inputName" value="">
+    <input type="submit" value="Check">
+</form>
+
+<%
+    Set id = %request.Data("inputName")
+    If id'="" {
+        // Check if global node exists
+        If $D(^MyData(id)) {
+            Write "<p style='color:red;font-weight:bold;'>Exists!</p>"
+        } Else {
+            Write "<p style='color:green;'>Not found.</p>"
+        }
+    }
+%>
+
+</body>
+</html>
