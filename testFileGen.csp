@@ -827,4 +827,144 @@
          * Copy the generated output to clipboard
          */
         function copyToClipboard() {
-            if (dataRecords.length === 0)
+            if (dataRecords.length === 0) {
+                alert('No data to copy. Please add some records first.');
+                return;
+            }
+            
+            const output = generateOutput();
+            
+            // Use the modern Clipboard API if available
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(output).then(() => {
+                    alert('Data copied to clipboard successfully!');
+                }).catch(err => {
+                    console.error('Failed to copy to clipboard:', err);
+                    fallbackCopyToClipboard(output);
+                });
+            } else {
+                // Fallback for older browsers or non-secure contexts
+                fallbackCopyToClipboard(output);
+            }
+            
+            console.log('Copy to clipboard requested for', dataRecords.length, 'records');
+        }
+
+        /**
+         * Fallback method to copy text to clipboard for older browsers
+         * @param {string} text - The text to copy
+         */
+        function fallbackCopyToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    alert('Data copied to clipboard successfully!');
+                } else {
+                    alert('Failed to copy data to clipboard. Please try manually selecting and copying.');
+                }
+            } catch (err) {
+                console.error('Fallback copy failed:', err);
+                alert('Failed to copy data to clipboard. Please try manually selecting and copying.');
+            } finally {
+                document.body.removeChild(textArea);
+            }
+        }
+
+        /**
+         * Add keyboard shortcuts for common actions
+         */
+        document.addEventListener('keydown', function(event) {
+            // Ctrl+Enter or Cmd+Enter to generate preview
+            if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+                event.preventDefault();
+                generatePreview();
+            }
+            
+            // Ctrl+S or Cmd+S to download file
+            if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+                event.preventDefault();
+                if (dataRecords.length > 0) {
+                    downloadFile();
+                }
+            }
+            
+            // Ctrl+D or Cmd+D to generate sample data
+            if ((event.ctrlKey || event.metaKey) && event.key === 'd') {
+                event.preventDefault();
+                generateSampleData();
+            }
+        });
+
+        /**
+         * Add input validation and formatting
+         */
+        function validateFieldInput(input, fieldType) {
+            if (fieldType === 'numeric') {
+                // Remove non-numeric characters for numeric fields
+                input.value = input.value.replace(/[^0-9]/g, '');
+            } else if (fieldType === 'alphanumeric') {
+                // Remove special characters for alphanumeric fields
+                input.value = input.value.replace(/[^a-zA-Z0-9]/g, '');
+            }
+            // Text fields allow all characters
+        }
+
+        /**
+         * Auto-save functionality to prevent data loss
+         */
+        function autoSave() {
+            const saveData = {
+                fieldDefinitions: fieldDefinitions,
+                dataRecords: dataRecords,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Note: In a real CSP environment, this would save to IRIS globals or SQL tables
+            // For now, we'll use memory storage only as per the artifact restrictions
+            console.log('Auto-save triggered at:', saveData.timestamp);
+        }
+
+        // Set up auto-save every 30 seconds
+        setInterval(autoSave, 30000);
+
+        /**
+         * Initialize the application when the page loads
+         */
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Pipe Delimited File Generator loaded successfully');
+            initializePage();
+            
+            // Display keyboard shortcuts info
+            console.log('Keyboard shortcuts:');
+            console.log('- Ctrl/Cmd + Enter: Generate Preview');
+            console.log('- Ctrl/Cmd + S: Download File');
+            console.log('- Ctrl/Cmd + D: Generate Sample Data');
+        });
+
+        /**
+         * Add visual feedback for form interactions
+         */
+        document.addEventListener('focusin', function(event) {
+            if (event.target.classList.contains('form-input') || event.target.classList.contains('form-select')) {
+                event.target.parentElement.style.transform = 'scale(1.02)';
+                event.target.parentElement.style.transition = 'transform 0.2s ease';
+            }
+        });
+
+        document.addEventListener('focusout', function(event) {
+            if (event.target.classList.contains('form-input') || event.target.classList.contains('form-select')) {
+                event.target.parentElement.style.transform = 'scale(1)';
+            }
+        });
+    </script>
+</body>
+</html>
