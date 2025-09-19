@@ -127,8 +127,7 @@
         .form-section-content {
             padding: 0 40px 40px 40px;
             transition: all 0.3s ease;
-            max-height: 2000px;
-            overflow: hidden;
+            overflow: visible; /* Changed from hidden to visible */
         }
 
         .form-section-content.collapsed {
@@ -136,6 +135,7 @@
             padding-top: 0;
             padding-bottom: 0;
             opacity: 0;
+            overflow: hidden; /* Only hide overflow when collapsed */
         }
 
         .section-info {
@@ -290,19 +290,69 @@
             border-color: rgba(255, 255, 255, 0.15);
         }
 
-        /* Record group styling */
+        /* Record group styling with collapsible functionality */
         .record-group {
             background: rgba(255, 255, 255, 0.02);
             border-radius: 12px;
-            padding: 20px;
             margin-bottom: 20px;
             border-left: 4px solid #4fc3f7;
+            overflow: visible;
         }
 
-        .record-group h4 {
+        .record-group-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px 12px 0 0;
+        }
+
+        .record-group-header:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .record-group-header.collapsed {
+            border-radius: 12px;
+        }
+
+        .record-group-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .record-group-title h4 {
             color: #4fc3f7;
-            margin-bottom: 15px;
+            margin: 0;
             font-size: 1.1rem;
+        }
+
+        .record-group-stats {
+            color: #90a4ae;
+            font-size: 0.9rem;
+        }
+
+        .record-group-content {
+            padding: 20px;
+            transition: all 0.3s ease;
+            overflow: visible;
+        }
+
+        .record-group-content.collapsed {
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+
+        .record-group-actions {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         /* Button Styling */
@@ -1072,22 +1122,59 @@
             }
             
             dataRecords.forEach((entityGroup, groupIndex) => {
+                // Calculate record counts for this group
+                const eCount = entityGroup.E ? entityGroup.E.length : 0;
+                const lCount = entityGroup.L ? entityGroup.L.length : 0;
+                const mCount = entityGroup.M ? entityGroup.M.length : 0;
+                
                 const groupDiv = document.createElement('div');
                 groupDiv.className = 'record-group';
                 groupDiv.innerHTML = `
-                    <h4>Entity Group ${entityGroup.entityId}</h4>
-                    <div id="entity-group-${groupIndex}"></div>
-                    <div style="margin-top: 15px;">
-                        <button class="btn btn-primary" onclick="addRecordToGroup(${groupIndex}, 'L')" style="padding: 6px 12px; font-size: 0.8rem; margin-right: 10px;">+ Add L Record</button>
-                        <button class="btn btn-primary" onclick="addRecordToGroup(${groupIndex}, 'M')" style="padding: 6px 12px; font-size: 0.8rem; margin-right: 10px;">+ Add M Record</button>
-                        <button class="btn btn-danger" onclick="removeEntityGroup(${groupIndex})" style="padding: 6px 12px; font-size: 0.8rem;">Delete Group</button>
+                    <div class="record-group-header" onclick="toggleEntityGroup(${groupIndex})">
+                        <div class="record-group-title">
+                            <h4>Entity Group ${entityGroup.entityId}</h4>
+                            <div class="record-group-stats">E:${eCount} | L:${lCount} | M:${mCount}</div>
+                        </div>
+                        <div class="collapse-arrow" id="entity-group-${groupIndex}-arrow">▼</div>
+                    </div>
+                    <div class="record-group-content" id="entity-group-${groupIndex}-content">
+                        <div id="entity-group-records-${groupIndex}"></div>
+                        <div class="record-group-actions">
+                            <button class="btn btn-primary" onclick="addRecordToGroup(${groupIndex}, 'L')" style="padding: 6px 12px; font-size: 0.8rem; margin-right: 10px;">+ Add L Record</button>
+                            <button class="btn btn-primary" onclick="addRecordToGroup(${groupIndex}, 'M')" style="padding: 6px 12px; font-size: 0.8rem; margin-right: 10px;">+ Add M Record</button>
+                            <button class="btn btn-danger" onclick="removeEntityGroup(${groupIndex})" style="padding: 6px 12px; font-size: 0.8rem;">Delete Group</button>
+                        </div>
                     </div>
                 `;
                 container.appendChild(groupDiv);
                 
-                // Render records for each type in this group
+                // Render records for this group
                 renderEntityGroupRecords(groupIndex);
             });
+        }
+
+        /**
+         * Toggle the visibility of an entity group
+         * @param {number} groupIndex - Index of the entity group to toggle
+         */
+        function toggleEntityGroup(groupIndex) {
+            const content = document.getElementById(`entity-group-${groupIndex}-content`);
+            const arrow = document.getElementById(`entity-group-${groupIndex}-arrow`);
+            const header = content.parentElement.querySelector('.record-group-header');
+            
+            if (content.classList.contains('collapsed')) {
+                // Expand group
+                content.classList.remove('collapsed');
+                arrow.classList.remove('collapsed');
+                header.classList.remove('collapsed');
+                console.log(`Expanded entity group: ${groupIndex}`);
+            } else {
+                // Collapse group
+                content.classList.add('collapsed');
+                arrow.classList.add('collapsed');
+                header.classList.add('collapsed');
+                console.log(`Collapsed entity group: ${groupIndex}`);
+            }
         }
 
         /**
@@ -1095,7 +1182,7 @@
          * @param {number} groupIndex - Index of the entity group
          */
         function renderEntityGroupRecords(groupIndex) {
-            const container = document.getElementById(`entity-group-${groupIndex}`);
+            const container = document.getElementById(`entity-group-records-${groupIndex}`);
             if (!container) return;
             
             container.innerHTML = '';
