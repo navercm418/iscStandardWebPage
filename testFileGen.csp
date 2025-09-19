@@ -522,7 +522,7 @@
         <!-- Page Header -->
         <div class="header">
             <h1>Hierarchical Pipe Delimited Generator</h1>
-            <p>Generate test files with E (Entity), L (Line), and M (Module) record structures</p>
+            <p>Generate test files with A, B, and C record structures</p>
         </div>
 
         <!-- Field Configuration Section -->
@@ -542,13 +542,13 @@
                 <!-- Record Type Tabs -->
                 <div class="record-type-tabs">
                     <button class="tab-button active" onclick="switchRecordType('E')">
-                        <span class="record-type-indicator indicator-e">E</span>Entity Records
+                        <span class="record-type-indicator indicator-e">E</span>A Records
                     </button>
                     <button class="tab-button" onclick="switchRecordType('L')">
-                        <span class="record-type-indicator indicator-l">L</span>Line Records
+                        <span class="record-type-indicator indicator-l">L</span>C Records
                     </button>
                     <button class="tab-button" onclick="switchRecordType('M')">
-                        <span class="record-type-indicator indicator-m">M</span>Module Records
+                        <span class="record-type-indicator indicator-m">M</span>B Records
                     </button>
                 </div>
 
@@ -606,11 +606,11 @@
                 
                 <div class="sample-config">
                     <div class="config-item">
-                        <label for="entity-count">Number of Entity Records</label>
+                        <label for="entity-count">Number of A Records</label>
                         <input type="number" id="entity-count" class="form-input" value="3" min="1" max="100">
                     </div>
                     <div class="config-item">
-                        <label for="module-count">Module Records per Entity</label>
+                        <label for="module-count">B Records per A</label>
                         <input type="number" id="module-count" class="form-input" value="3" min="1" max="20">
                     </div>
                     <div class="config-item">
@@ -648,7 +648,7 @@
             </div>
             <div class="form-section-content collapsed" id="manual-entry-content">
                 <div class="section-info">
-                    Manually add and edit record data. Records are grouped by Entity ID.
+                    Manually add and edit record data. Records are grouped by A ID.
                 </div>
                 
                 <div id="data-entry-container">
@@ -656,7 +656,7 @@
                 </div>
 
                 <div class="button-group">
-                    <button class="btn btn-primary" onclick="addEntityGroup()">+ Add Entity Group</button>
+                    <button class="btn btn-primary" onclick="addAGroup()">+ Add A Group</button>
                 </div>
             </div>
         </div>
@@ -675,15 +675,15 @@
                 <div class="stats-panel">
                     <div class="stat-item">
                         <span class="stat-value" id="entity-record-count">0</span>
-                        <span class="stat-label">Entity Records</span>
+                        <span class="stat-label">A Records</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-value" id="line-record-count">0</span>
-                        <span class="stat-label">Line Records</span>
+                        <span class="stat-label">C Records</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-value" id="module-record-count">0</span>
-                        <span class="stat-label">Module Records</span>
+                        <span class="stat-label">B Records</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-value" id="total-record-count">0</span>
@@ -714,9 +714,9 @@
     <script>
         // Global variables to store field definitions and data for each record type
         let fieldDefinitions = {
-            E: [], // Entity fields
+            E: [], // A fields
             L: [], // Line fields  
-            M: []  // Module fields
+            M: []  // B fields
         };
         
         let dataRecords = []; // Array of entity groups, each containing E, L, and M records
@@ -724,11 +724,11 @@
 
         /**
          * Default field configurations for each record type
-         * E = Entity (main record), L = Line items, M = Module/detail records
+         * E = A (main record), L = Line items, M = B/detail records
          */
         const defaultFields = {
             E: [
-                { name: 'EntityID', type: 'numeric', length: 8 },
+                { name: 'AID', type: 'numeric', length: 8 },
                 { name: 'FirstName', type: 'text', length: 20 },
                 { name: 'LastName', type: 'text', length: 30 },
                 { name: 'Address', type: 'text', length: 50 },
@@ -737,7 +737,7 @@
                 { name: 'ZipCode', type: 'numeric', length: 5 }
             ],
             L: [
-                { name: 'EntityID', type: 'numeric', length: 8 },
+                { name: 'AID', type: 'numeric', length: 8 },
                 { name: 'Company', type: 'text', length: 40 },
                 { name: 'Department', type: 'text', length: 20 },
                 { name: 'Position', type: 'text', length: 30 },
@@ -745,8 +745,8 @@
                 { name: 'StartDate', type: 'text', length: 10 }
             ],
             M: [
-                { name: 'EntityID', type: 'numeric', length: 8 },
-                { name: 'ModuleCode', type: 'alphanumeric', length: 6 },
+                { name: 'AID', type: 'numeric', length: 8 },
+                { name: 'BCode', type: 'alphanumeric', length: 6 },
                 { name: 'AccountNum', type: 'numeric', length: 12 },
                 { name: 'Amount', type: 'numeric', length: 10 },
                 { name: 'TransType', type: 'alphanumeric', length: 3 },
@@ -767,7 +767,7 @@
             Company: ['Tech Corp', 'Global Industries', 'Innovation Ltd', 'Dynamic Systems', 'Future Solutions', 'Advanced Analytics', 'Digital Ventures', 'Smart Technologies'],
             Department: ['Engineering', 'Marketing', 'Finance', 'Operations', 'HR', 'Sales', 'IT', 'Legal', 'R&D', 'Customer Service'],
             Position: ['Manager', 'Senior Developer', 'Analyst', 'Coordinator', 'Specialist', 'Director', 'Associate', 'Lead Engineer', 'Consultant', 'Administrator'],
-            ModuleCode: ['ACC001', 'FIN002', 'INV003', 'PAY004', 'RPT005', 'ADM006', 'SEC007', 'AUD008', 'TAX009', 'BUD010'],
+            BCode: ['ACC001', 'FIN002', 'INV003', 'PAY004', 'RPT005', 'ADM006', 'SEC007', 'AUD008', 'TAX009', 'BUD010'],
             TransType: ['CR', 'DR', 'ADJ', 'REV', 'REF', 'FEE', 'INT', 'TAX', 'PEN', 'DIS']
         };
 
@@ -989,12 +989,12 @@
                 const currentId = startId + e;
                 const entityGroup = {
                     entityId: currentId,
-                    E: [], // Entity records (typically 1)
+                    E: [], // A records (typically 1)
                     L: [], // Line records (optional, based on checkbox)
-                    M: []  // Module records
+                    M: []  // B records
                 };
                 
-                // Generate Entity record
+                // Generate A record
                 const entityRecord = {};
                 fieldDefinitions.E.forEach(field => {
                     entityRecord[field.name] = generateSampleValue(field, currentId, 'E');
@@ -1013,7 +1013,7 @@
                     }
                 }
                 
-                // Generate Module records
+                // Generate B records
                 for (let m = 0; m < moduleCount; m++) {
                     const moduleRecord = {};
                     fieldDefinitions.M.forEach(field => {
@@ -1042,7 +1042,7 @@
         function generateSampleValue(field, entityId, recordType, index = 0) {
             const fieldName = field.name;
             
-            // Always use EntityID for ID fields
+            // Always use AID for ID fields
             if (fieldName.toLowerCase().includes('entityid') || fieldName.toLowerCase() === 'id') {
                 return String(entityId);
             }
@@ -1070,7 +1070,7 @@
                 }
             } else if (field.type === 'alphanumeric') {
                 if (fieldName.toLowerCase().includes('module') || fieldName.toLowerCase().includes('code')) {
-                    const codes = sampleDataPools.ModuleCode || ['MOD001', 'MOD002', 'MOD003'];
+                    const codes = sampleDataPools.BCode || ['MOD001', 'MOD002', 'MOD003'];
                     return codes[(entityId + index) % codes.length];
                 } else if (fieldName.toLowerCase().includes('trans') || fieldName.toLowerCase().includes('type')) {
                     const types = sampleDataPools.TransType || ['CR', 'DR', 'ADJ'];
@@ -1094,11 +1094,11 @@
         /**
          * Add a new entity group for manual data entry
          */
-        function addEntityGroup() {
-            const newEntityId = Math.max(...dataRecords.map(g => g.entityId), 999) + 1;
+        function addAGroup() {
+            const newAId = Math.max(...dataRecords.map(g => g.entityId), 999) + 1;
             
             const entityGroup = {
-                entityId: newEntityId,
+                entityId: newAId,
                 E: [{}], // Start with one empty E record
                 L: [{}], // Start with one empty L record
                 M: [{}]  // Start with one empty M record
@@ -1115,7 +1115,7 @@
             renderDataEntryForm();
             updateStatistics();
             
-            console.log('Added new entity group with ID:', newEntityId);
+            console.log('Added new entity group with ID:', newAId);
         }
 
         /**
@@ -1139,9 +1139,9 @@
                 const groupDiv = document.createElement('div');
                 groupDiv.className = 'record-group';
                 groupDiv.innerHTML = `
-                    <div class="record-group-header" onclick="toggleEntityGroup(${groupIndex})">
+                    <div class="record-group-header" onclick="toggleAGroup(${groupIndex})">
                         <div class="record-group-title">
-                            <h4>Entity Group ${entityGroup.entityId}</h4>
+                            <h4>A Group ${entityGroup.entityId}</h4>
                             <div class="record-group-stats">E:${eCount} | L:${lCount} | M:${mCount}</div>
                         </div>
                         <div class="collapse-arrow" id="entity-group-${groupIndex}-arrow">▼</div>
@@ -1151,14 +1151,14 @@
                         <div class="record-group-actions">
                             <button class="btn btn-primary" onclick="addRecordToGroup(${groupIndex}, 'L')" style="padding: 6px 12px; font-size: 0.8rem; margin-right: 10px;">+ Add L Record</button>
                             <button class="btn btn-primary" onclick="addRecordToGroup(${groupIndex}, 'M')" style="padding: 6px 12px; font-size: 0.8rem; margin-right: 10px;">+ Add M Record</button>
-                            <button class="btn btn-danger" onclick="removeEntityGroup(${groupIndex})" style="padding: 6px 12px; font-size: 0.8rem;">Delete Group</button>
+                            <button class="btn btn-danger" onclick="removeAGroup(${groupIndex})" style="padding: 6px 12px; font-size: 0.8rem;">Delete Group</button>
                         </div>
                     </div>
                 `;
                 container.appendChild(groupDiv);
                 
                 // Render records for this group
-                renderEntityGroupRecords(groupIndex);
+                renderAGroupRecords(groupIndex);
             });
         }
 
@@ -1166,7 +1166,7 @@
          * Toggle the visibility of an entity group
          * @param {number} groupIndex - Index of the entity group to toggle
          */
-        function toggleEntityGroup(groupIndex) {
+        function toggleAGroup(groupIndex) {
             const content = document.getElementById(`entity-group-${groupIndex}-content`);
             const arrow = document.getElementById(`entity-group-${groupIndex}-arrow`);
             const header = content.parentElement.querySelector('.record-group-header');
@@ -1190,7 +1190,7 @@
          * Render records for a specific entity group
          * @param {number} groupIndex - Index of the entity group
          */
-        function renderEntityGroupRecords(groupIndex) {
+        function renderAGroupRecords(groupIndex) {
             const container = document.getElementById(`entity-group-records-${groupIndex}`);
             if (!container) return;
             
@@ -1261,7 +1261,7 @@
             });
             
             dataRecords[groupIndex][recordType].push(newRecord);
-            renderEntityGroupRecords(groupIndex);
+            renderAGroupRecords(groupIndex);
             updateStatistics();
             
             console.log(`Added ${recordType} record to group ${groupIndex}`);
@@ -1275,7 +1275,7 @@
          */
         function removeRecord(groupIndex, recordType, recordIndex) {
             dataRecords[groupIndex][recordType].splice(recordIndex, 1);
-            renderEntityGroupRecords(groupIndex);
+            renderAGroupRecords(groupIndex);
             updateStatistics();
             
             console.log(`Removed ${recordType} record ${recordIndex} from group ${groupIndex}`);
@@ -1285,7 +1285,7 @@
          * Remove an entire entity group
          * @param {number} groupIndex - Index of the entity group to remove
          */
-        function removeEntityGroup(groupIndex) {
+        function removeAGroup(groupIndex) {
             if (confirm('Are you sure you want to delete this entire entity group?')) {
                 dataRecords.splice(groupIndex, 1);
                 renderDataEntryForm();
