@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pipe Delimited Test File Generator - InterSystems IRIS</title>
+    <style>
+        /* Global Styles and Reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #e0e6ed;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header Styling */
+        .header {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .header h1 {
+            color: #4fc3f7;
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(79, 195, 247, 0.3);
+        }
+
+        .header p {
+            color: #b0bec5;
+            font-size: 1.1rem;
+        }
+
+        /* Form Section Styling */
+        .form-section {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .form-section h2 {
+            color: #81c784;
+            font-size: 1.8rem;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid rgba(129, 199, 132, 0.3);
+        }
+
+        /* Field Configuration Grid */
+        .field-config-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 80px;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .field-config-header {
+            font-weight: 600;
+            color: #4fc3f7;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+
+        /* Form Input Styling */
+        .form-input, .form-select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #ffffff;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            outline: none;
+            width: 100%;
+        }
+
+        .form-input::placeholder {
+            color: #90a4ae;
+        }
+
+        .form-input:focus, .form-select:focus {
+            border-color: #4fc3f7;
+            box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.2);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Length input specific styling */
+        .length-input {
+            text-align: center;
+            font-weight: 600;
+        }
+
+        /* Data Entry Section */
+        .data-entry-grid {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .data-row {
+            display: grid;
+            gap: 15px;
+            align-items: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .data-row:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Button Styling */
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #29b6f6 0%, #0288d1 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 195, 247, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #81c784 0%, #66bb6a 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #66bb6a 0%, #4caf50 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(129, 199, 132, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffb74d 0%, #ffa726 100%);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #ffa726 0%, #ff9800 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 183, 77, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e57373 0%, #ef5350 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #ef5350 0%, #f44336 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(229, 115, 115, 0.4);
+        }
+
+        /* Output Preview Section */
+        .output-preview {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .output-preview h3 {
+            color: #4fc3f7;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .preview-content {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            overflow-x: auto;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        /* Statistics Panel */
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #81c784;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #b0bec5;
+            text-transform: uppercase;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .field-config-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Page Header -->
+        <div class="header">
+            <h1>Pipe Delimited File Generator</h1>
+            <p>Generate test files with custom field definitions and zero-padding</p>
+        </div>
+
+        <!-- Field Configuration Section -->
+        <div class="form-section">
+            <h2>Field Configuration</h2>
+            <p style="color: #b0bec5; margin-bottom: 20px; font-size: 0.95rem;">
+                Define your field structure below. Each field will be zero-padded to the specified length.
+            </p>
+            
+            <!-- Field Configuration Header -->
+            <div class="field-config-grid">
+                <div class="field-config-header">Field Name</div>
+                <div class="field-config-header">Data Type</div>
+                <div class="field-config-header">Max Length</div>
+                <div class="field-config-header">Action</div>
+            </div>
+
+            <!-- Default Fields Container -->
+            <div id="field-definitions">
+                <!-- Default fields will be populated by JavaScript -->
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="addField()">+ Add Field</button>
+                <button class="btn btn-warning" onclick="resetFields()">Reset to Default</button>
+            </div>
+        </div>
+
+        <!-- Data Entry Section -->
+        <div class="form-section">
+            <h2>Data Entry</h2>
+            <p style="color: #b0bec5; margin-bottom: 20px; font-size: 0.95rem;">
+                Enter data for each record. Fields will be automatically padded with zeros based on configuration.
+            </p>
+            
+            <div id="data-entry-container">
+                <!-- Data entry rows will be generated by JavaScript -->
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="addDataRow()">+ Add Record</button>
+                <button class="btn btn-success" onclick="generatePreview()">Generate Preview</button>
+                <button class="btn btn-warning" onclick="generateSampleData()">Generate Sample Data</button>
+                <button class="btn btn-danger" onclick="clearAllData()">Clear All Data</button>
+            </div>
+        </div>
+
+        <!-- Output and Preview Section -->
+        <div class="form-section">
+            <h2>File Output</h2>
+            
+            <!-- Statistics Panel -->
+            <div class="stats-panel">
+                <div class="stat-item">
+                    <span class="stat-value" id="record-count">0</span>
+                    <span class="stat-label">Records</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="field-count">0</span>
+                    <span class="stat-label">Fields</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="total-length">0</span>
+                    <span class="stat-label">Record Length</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value" id="file-size">0</span>
+                    <span class="stat-label">Est. File Size (KB)</span>
+                </div>
+            </div>
+
+            <!-- Preview Content -->
+            <div class="output-preview">
+                <h3>File Preview (First 10 Records)</h3>
+                <div class="preview-content" id="preview-content">
+                    Configure fields and add data to see preview...
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-success" onclick="downloadFile()">Download File</button>
+                <button class="btn btn-primary" onclick="copyToClipboard()">Copy to Clipboard</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables to store field definitions and data
+        let fieldDefinitions = [];
+        let dataRecords = [];
+
+        /**
+         * Default field configuration for common use cases
+         * Each field has: name, type, length, and optional sample data
+         */
+        const defaultFields = [
+            { name: 'FirstName', type: 'text', length: 20 },
+            { name: 'LastName', type: 'text', length: 30 },
+            { name: 'Address', type: 'text', length: 50 },
+            { name: 'City', type: 'text', length: 25 },
+            { name: 'State', type: 'text', length: 2 },
+            { name: 'ZipCode', type: 'numeric', length: 5 },
+            { name: 'Phone', type: 'numeric', length: 10 },
+            { name: 'CustomerID', type: 'numeric', length: 8 }
+        ];
+
+        /**
+         * Sample data for generating test records
+         */
+        const sampleData = {
+            FirstName: ['John', 'Jane', 'Michael', 'Sarah', 'David', 'Lisa', 'Robert', 'Mary', 'James', 'Patricia'],
+            LastName: ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez'],
+            Address: ['123 Main St', '456 Oak Ave', '789 Pine Rd', '321 Elm St', '654 Maple Dr', '987 Cedar Ln', '147 Birch Way', '258 Spruce Ct'],
+            City: ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego', 'Dallas', 'San Jose'],
+            State: ['NY', 'CA', 'IL', 'TX', 'AZ', 'PA', 'TX', 'CA', 'TX', 'CA'],
+            ZipCode: ['10001', '90210', '60601', '77001', '85001', '19101', '78201', '92101', '75201', '95101']
+        };
+
+        /**
+         * Initialize the page with default field configuration
+         */
+        function initializePage() {
+            console.log('Initializing Pipe Delimited File Generator...');
+            
+            // Load default fields
+            fieldDefinitions = [...defaultFields];
+            renderFieldDefinitions();
+            renderDataEntryForm();
+            updateStatistics();
+            
+            console.log('Page initialized with', fieldDefinitions.length, 'default fields');
+        }
+
+        /**
+         * Render the field definition configuration UI
+         */
+        function renderFieldDefinitions() {
+            const container = document.getElementById('field-definitions');
+            container.innerHTML = '';
+
+            fieldDefinitions.forEach((field, index) => {
+                const fieldDiv = document.createElement('div');
+                fieldDiv.className = 'field-config-grid';
+                fieldDiv.innerHTML = `
+                    <input type="text" class="form-input" value="${field.name}" 
+                           onchange="updateFieldName(${index}, this.value)" 
+                           placeholder="Field name">
+                    <select class="form-select" onchange="updateFieldType(${index}, this.value)">
+                        <option value="text" ${field.type === 'text' ? 'selected' : ''}>Text</option>
+                        <option value="numeric" ${field.type === 'numeric' ? 'selected' : ''}>Numeric</option>
+                        <option value="alphanumeric" ${field.type === 'alphanumeric' ? 'selected' : ''}>Alphanumeric</option>
+                    </select>
+                    <input type="number" class="form-input length-input" value="${field.length}" 
+                           onchange="updateFieldLength(${index}, this.value)" 
+                           min="1" max="255" placeholder="Length">
+                    <button class="btn btn-danger" onclick="removeField(${index})" 
+                            style="padding: 8px 12px; font-size: 0.8rem;">×</button>
+                `;
+                container.appendChild(fieldDiv);
+            });
+        }
+
+        /**
+         * Render the data entry form based on current field definitions
+         */
+        function renderDataEntryForm() {
+            const container = document.getElementById('data-entry-container');
+            container.innerHTML = '';
+
+            // Create header row
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'data-row';
+            headerDiv.style.background = 'rgba(79, 195, 247, 0.1)';
+            headerDiv.style.gridTemplateColumns = `repeat(${fieldDefinitions.length + 1}, 1fr)`;
+            
+            let headerHTML = '';
+            fieldDefinitions.forEach(field => {
+                headerHTML += `<div class="field-config-header">${field.name} (${field.length})</div>`;
+            });
+            headerHTML += `<div class="field-config-header">Action</div>`;
+            headerDiv.innerHTML = headerHTML;
+            container.appendChild(headerDiv);
+
+            // Create data entry rows
+            dataRecords.forEach((record, recordIndex) => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'data-row';
+                rowDiv.style.gridTemplateColumns = `repeat(${fieldDefinitions.length + 1}, 1fr)`;
+                
+                let rowHTML = '';
+                fieldDefinitions.forEach((field, fieldIndex) => {
+                    const value = record[field.name] || '';
+                    rowHTML += `
+                        <input type="text" class="form-input" 
+                               value="${value}" 
+                               onchange="updateDataValue(${recordIndex}, '${field.name}', this.value)"
+                               placeholder="${field.type === 'numeric' ? '123...' : 'Enter ' + field.name}">
+                    `;
+                });
+                rowHTML += `
+                    <button class="btn btn-danger" onclick="removeDataRow(${recordIndex})" 
+                            style="padding: 8px 12px; font-size: 0.8rem;">Delete</button>
+                `;
+                rowDiv.innerHTML = rowHTML;
+                container.appendChild(rowDiv);
+            });
+        }
+
+        /**
+         * Add a new field definition
+         */
+        function addField() {
+            const newField = {
+                name: `Field${fieldDefinitions.length + 1}`,
+                type: 'text',
+                length: 10
+            };
+            
+            fieldDefinitions.push(newField);
+            renderFieldDefinitions();
+            renderDataEntryForm();
+            updateStatistics();
+            
+            console.log('Added new field:', newField);
+        }
+
+        /**
+         * Remove a field definition by index
+         */
+        function removeField(index) {
+            if (fieldDefinitions.length <= 1) {
+                alert('Cannot remove the last field. At least one field is required.');
+                return;
+            }
+            
+            const removedField = fieldDefinitions.splice(index, 1)[0];
+            
+            // Remove the field from all data records
+            dataRecords.forEach(record => {
+                delete record[removedField.name];
+            });
+            
+            renderFieldDefinitions();
+            renderDataEntryForm();
+            updateStatistics();
+            
+            console.log('Removed field:', removedField);
+        }
+
+        /**
+         * Update field name
+         */
+        function updateFieldName(index, newName) {
+            const oldName = fieldDefinitions[index].name;
+            fieldDefinitions[index].name = newName;
+            
+            // Update all data records with the new field name
+            dataRecords.forEach(record => {
+                if (record[oldName] !== undefined) {
+                    record[newName] = record[oldName];
+                    delete record[oldName];
+                }
+            });
+            
+            renderDataEntryForm();
+            console.log(`Field renamed from "${oldName}" to "${newName}"`);
+        }
+
+        /**
+         * Update field type
+         */
+        function updateFieldType(index, newType) {
+            fieldDefinitions[index].type = newType;
+            console.log(`Field "${fieldDefinitions[index].name}" type changed to:`, newType);
+        }
+
+        /**
+         * Update field length
+         */
+        function updateFieldLength(index, newLength) {
+            fieldDefinitions[index].length = parseInt(newLength) || 1;
+            renderDataEntryForm();
+            updateStatistics();
+            console.log(`Field "${fieldDefinitions[index].name}" length changed to:`, newLength);
+        }
+
+        /**
+         * Add a new data row
+         */
+        function addDataRow() {
+            const newRecord = {};
+            fieldDefinitions.forEach(field => {
+                newRecord[field.name] = '';
+            });
+            
+            dataRecords.push(newRecord);
+            renderDataEntryForm();
+            updateStatistics();
+            
+            console.log('Added new data row');
+        }
+
+        /**
+         * Remove a data row by index
+         */
+        function removeDataRow(index) {
+            dataRecords.splice(index, 1);
+            renderDataEntryForm();
+            updateStatistics();
+            console.log('Removed data row at index:', index);
+        }
+
+        /**
+         * Update a data value in a specific record
+         */
+        function updateDataValue(recordIndex, fieldName, value) {
+            if (!dataRecords[recordIndex]) {
+                dataRecords[recordIndex] = {};
+            }
+            dataRecords[recordIndex][fieldName] = value;
+            console.log(`Updated ${fieldName} in record ${recordIndex} to:`, value);
+        }
+
+        /**
+         * Pad a value with zeros based on field configuration
+         * @param {string} value - The value to pad
+         * @param {object} field - The field definition containing type and length
+         * @returns {string} - The padded value
+         */
+        function padValue(value, field) {
+            let strValue = String(value || '');
+            
+            // Truncate if too long
+            if (strValue.length > field.length) {
+                strValue = strValue.substring(0, field.length);
+            }
+            
+            // Pad based on field type
+            if (field.type === 'numeric') {
+                // Left pad numeric fields with zeros
+                return strValue.padStart(field.length, '0');
+            } else {
+                // Right pad text fields with spaces, then replace spaces with zeros if needed
+                return strValue.padEnd(field.length, '0');
+            }
+        }
+
+        /**
+         * Generate the pipe-delimited output
+         * @returns {string} - The formatted output
+         */
+        function generateOutput() {
+            if (dataRecords.length === 0) {
+                return 'No data records to generate.';
+            }
+
+            let output = '';
+            
+            // Generate header row (optional - commented out for now)
+            // const header = fieldDefinitions.map(field => field.name.padEnd(field.length, '0')).join('|');
+            // output += header + '\n';
+            
+            // Generate data rows
+            dataRecords.forEach((record, index) => {
+                const row = fieldDefinitions.map(field => {
+                    const value = record[field.name] || '';
+                    return padValue(value, field);
+                }).join('|');
+                
+                output += row + '\n';
+            });
+            
+            return output;
+        }
+
+        /**
+         * Generate and display preview of the output
+         */
+        function generatePreview() {
+            const output = generateOutput();
+            const previewContainer = document.getElementById('preview-content');
+            
+            // Show only first 10 lines for preview
+            const lines = output.split('\n');
+            const previewLines = lines.slice(0, Math.min(10, lines.length - 1)); // -1 to remove empty last line
+            
+            if (previewLines.length > 0) {
+                previewContainer.textContent = previewLines.join('\n');
+                if (lines.length > 11) { // 10 data lines + 1 empty
+                    previewContainer.textContent += '\n... (' + (lines.length - 11) + ' more records)';
+                }
+            } else {
+                previewContainer.textContent = 'No data to preview. Add some records first.';
+            }
+            
+            updateStatistics();
+            console.log('Preview generated for', dataRecords.length, 'records');
+        }
+
+        /**
+         * Update statistics display
+         */
+        function updateStatistics() {
+            const recordCount = dataRecords.length;
+            const fieldCount = fieldDefinitions.length;
+            const recordLength = fieldDefinitions.reduce((sum, field) => sum + field.length, 0) + (fieldCount - 1); // +1 for each pipe separator
+            const estimatedFileSize = Math.ceil((recordLength + 1) * recordCount / 1024); // +1 for newline, convert to KB
+            
+            document.getElementById('record-count').textContent = recordCount;
+            document.getElementById('field-count').textContent = fieldCount;
+            document.getElementById('total-length').textContent = recordLength;
+            document.getElementById('file-size').textContent = estimatedFileSize;
+        }
+
+        /**
+         * Generate sample data for testing
+         */
+        function generateSampleData() {
+            const sampleCount = 5;
+            dataRecords = [];
+            
+            for (let i = 0; i < sampleCount; i++) {
+                const record = {};
+                
+                fieldDefinitions.forEach(field => {
+                    let value = '';
+                    
+                    // Generate appropriate sample data based on field name and type
+                    if (sampleData[field.name]) {
+                        const samples = sampleData[field.name];
+                        value = samples[Math.floor(Math.random() * samples.length)];
+                    } else if (field.type === 'numeric') {
+                        if (field.name.toLowerCase().includes('id')) {
+                            value = String(1000000 + i);
+                        } else if (field.name.toLowerCase().includes('phone')) {
+                            value = '555' + String(Math.floor(Math.random() * 9000000) + 1000000);
+                        } else {
+                            value = String(Math.floor(Math.random() * Math.pow(10, field.length - 1)) + Math.pow(10, field.length - 2));
+                        }
+                    } else {
+                        value = `Sample${i + 1}`;
+                    }
+                    
+                    record[field.name] = value;
+                });
+                
+                dataRecords.push(record);
+            }
+            
+            renderDataEntryForm();
+            generatePreview();
+            
+            console.log('Generated', sampleCount, 'sample records');
+        }
+
+        /**
+         * Clear all data records
+         */
+        function clearAllData() {
+            if (dataRecords.length === 0) {
+                alert('No data to clear.');
+                return;
+            }
+            
+            if (confirm('Are you sure you want to clear all data records?')) {
+                dataRecords = [];
+                renderDataEntryForm();
+                document.getElementById('preview-content').textContent = 'Configure fields and add data to see preview...';
+                updateStatistics();
+                console.log('All data records cleared');
+            }
+        }
+
+        /**
+         * Reset fields to default configuration
+         */
+        function resetFields() {
+            if (confirm('Are you sure you want to reset to default field configuration? This will clear all data.')) {
+                fieldDefinitions = [...defaultFields];
+                dataRecords = [];
+                renderFieldDefinitions();
+                renderDataEntryForm();
+                document.getElementById('preview-content').textContent = 'Configure fields and add data to see preview...';
+                updateStatistics();
+                console.log('Reset to default field configuration');
+            }
+        }
+
+        /**
+         * Download the generated file
+         */
+        function downloadFile() {
+            if (dataRecords.length === 0) {
+                alert('No data to download. Please add some records first.');
+                return;
+            }
+            
+            const output = generateOutput();
+            const blob = new Blob([output], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `pipe_delimited_data_${new Date().toISOString().slice(0, 10)}.txt`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            console.log('File download initiated');
+        }
+
+        /**
+         * Copy the generated output to clipboard
+         */
+        function copyToClipboard() {
+            if (dataRecords.length === 0)
