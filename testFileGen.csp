@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pipe Delimited Test File Generator - InterSystems IRIS</title>
+    <title>Hierarchical Pipe Delimited File Generator - InterSystems IRIS</title>
     <style>
         /* Global Styles and Reset */
         * {
@@ -51,16 +51,16 @@
             font-size: 1.1rem;
         }
 
-        /* Form Section Styling */
+        /* Form Section Styling with Collapsible Headers */
         .form-section {
             background: rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(15px);
             border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 20px;
-            padding: 40px;
             margin-bottom: 30px;
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
         }
 
         .form-section:hover {
@@ -68,13 +68,130 @@
             box-shadow: 0 16px 50px rgba(0, 0, 0, 0.5);
         }
 
-        .form-section h2 {
+        .form-section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 30px 40px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .form-section-header:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .form-section-header.collapsed {
+            border-bottom: none;
+        }
+
+        .form-section-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .form-section-title h2 {
             color: #81c784;
             font-size: 1.8rem;
-            margin-bottom: 25px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid rgba(129, 199, 132, 0.3);
+            margin: 0;
+            padding: 0;
+            border: none;
         }
+
+        .collapse-arrow {
+            width: 24px;
+            height: 24px;
+            transition: transform 0.3s ease;
+            color: #4fc3f7;
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .collapse-arrow.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .section-description {
+            color: #b0bec5;
+            font-size: 0.95rem;
+            margin: 0;
+            opacity: 0.8;
+        }
+
+        .form-section-content {
+            padding: 0 40px 40px 40px;
+            transition: all 0.3s ease;
+            max-height: 2000px;
+            overflow: hidden;
+        }
+
+        .form-section-content.collapsed {
+            max-height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            opacity: 0;
+        }
+
+        .section-info {
+            padding: 20px 0;
+            color: #b0bec5;
+            font-size: 0.95rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 25px;
+        }
+
+        /* Record Type Tabs */
+        .record-type-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px;
+            border-radius: 12px;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 12px 20px;
+            background: transparent;
+            border: none;
+            color: #b0bec5;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #4fc3f7 0%, #29b6f6 100%);
+            color: white;
+        }
+
+        .tab-button:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e0e6ed;
+        }
+
+        /* Record Type Indicators */
+        .record-type-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .indicator-e { background: #4fc3f7; color: white; }
+        .indicator-l { background: #81c784; color: white; }
+        .indicator-m { background: #ffb74d; color: white; }
 
         /* Field Configuration Grid */
         .field-config-grid {
@@ -126,6 +243,30 @@
             font-weight: 600;
         }
 
+        /* Sample Data Configuration */
+        .sample-config {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .config-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .config-item label {
+            color: #cfd8dc;
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+
         /* Data Entry Section */
         .data-entry-grid {
             display: grid;
@@ -147,6 +288,21 @@
         .data-row:hover {
             background: rgba(255, 255, 255, 0.06);
             border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Record group styling */
+        .record-group {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4fc3f7;
+        }
+
+        .record-group h4 {
+            color: #4fc3f7;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
         }
 
         /* Button Styling */
@@ -256,14 +412,14 @@
             font-size: 0.9rem;
             white-space: pre-wrap;
             overflow-x: auto;
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
         }
 
         /* Statistics Panel */
         .stats-panel {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 15px;
             margin-top: 20px;
         }
@@ -304,6 +460,10 @@
                 width: 100%;
                 text-align: center;
             }
+
+            .sample-config {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -311,164 +471,348 @@
     <div class="container">
         <!-- Page Header -->
         <div class="header">
-            <h1>Pipe Delimited File Generator</h1>
-            <p>Generate test files with custom field definitions and zero-padding</p>
+            <h1>Hierarchical Pipe Delimited Generator</h1>
+            <p>Generate test files with E (Entity), L (Line), and M (Module) record structures</p>
         </div>
 
         <!-- Field Configuration Section -->
         <div class="form-section">
-            <h2>Field Configuration</h2>
-            <p style="color: #b0bec5; margin-bottom: 20px; font-size: 0.95rem;">
-                Define your field structure below. Each field will be zero-padded to the specified length.
-            </p>
-            
-            <!-- Field Configuration Header -->
-            <div class="field-config-grid">
-                <div class="field-config-header">Field Name</div>
-                <div class="field-config-header">Data Type</div>
-                <div class="field-config-header">Max Length</div>
-                <div class="field-config-header">Action</div>
+            <div class="form-section-header" onclick="toggleSection('field-config')">
+                <div class="form-section-title">
+                    <h2>Record Type Configuration</h2>
+                    <div class="section-description">Configure fields for each record type</div>
+                </div>
+                <div class="collapse-arrow" id="field-config-arrow">▼</div>
             </div>
+            <div class="form-section-content" id="field-config-content">
+                <div class="section-info">
+                    Configure fields for each record type. Numeric fields will be zero-padded (left), text fields will be space-padded (right).
+                </div>
+                
+                <!-- Record Type Tabs -->
+                <div class="record-type-tabs">
+                    <button class="tab-button active" onclick="switchRecordType('E')">
+                        <span class="record-type-indicator indicator-e">E</span>Entity Records
+                    </button>
+                    <button class="tab-button" onclick="switchRecordType('L')">
+                        <span class="record-type-indicator indicator-l">L</span>Line Records
+                    </button>
+                    <button class="tab-button" onclick="switchRecordType('M')">
+                        <span class="record-type-indicator indicator-m">M</span>Module Records
+                    </button>
+                </div>
 
-            <!-- Default Fields Container -->
-            <div id="field-definitions">
-                <!-- Default fields will be populated by JavaScript -->
-            </div>
+                <!-- Field Configuration for Each Record Type -->
+                <div id="field-config-E" class="field-config-panel">
+                    <div class="field-config-grid">
+                        <div class="field-config-header">Field Name</div>
+                        <div class="field-config-header">Data Type</div>
+                        <div class="field-config-header">Max Length</div>
+                        <div class="field-config-header">Action</div>
+                    </div>
+                    <div id="field-definitions-E"></div>
+                </div>
 
-            <div class="button-group">
-                <button class="btn btn-primary" onclick="addField()">+ Add Field</button>
-                <button class="btn btn-warning" onclick="resetFields()">Reset to Default</button>
+                <div id="field-config-L" class="field-config-panel" style="display: none;">
+                    <div class="field-config-grid">
+                        <div class="field-config-header">Field Name</div>
+                        <div class="field-config-header">Data Type</div>
+                        <div class="field-config-header">Max Length</div>
+                        <div class="field-config-header">Action</div>
+                    </div>
+                    <div id="field-definitions-L"></div>
+                </div>
+
+                <div id="field-config-M" class="field-config-panel" style="display: none;">
+                    <div class="field-config-grid">
+                        <div class="field-config-header">Field Name</div>
+                        <div class="field-config-header">Data Type</div>
+                        <div class="field-config-header">Max Length</div>
+                        <div class="field-config-header">Action</div>
+                    </div>
+                    <div id="field-definitions-M"></div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="addField()">+ Add Field</button>
+                    <button class="btn btn-warning" onclick="resetFields()">Reset to Default</button>
+                </div>
             </div>
         </div>
 
-        <!-- Data Entry Section -->
+        <!-- Sample Data Configuration Section -->
         <div class="form-section">
-            <h2>Data Entry</h2>
-            <p style="color: #b0bec5; margin-bottom: 20px; font-size: 0.95rem;">
-                Enter data for each record. Fields will be automatically padded with zeros based on configuration.
-            </p>
-            
-            <div id="data-entry-container">
-                <!-- Data entry rows will be generated by JavaScript -->
+            <div class="form-section-header" onclick="toggleSection('sample-config')">
+                <div class="form-section-title">
+                    <h2>Sample Data Configuration</h2>
+                    <div class="section-description">Generate test data with custom settings</div>
+                </div>
+                <div class="collapse-arrow" id="sample-config-arrow">▼</div>
             </div>
+            <div class="form-section-content" id="sample-config-content">
+                <div class="section-info">
+                    Configure how many records to generate. Each Entity (E) record will be followed by interleaved Line (L) and Module (M) records (L-M-L-M pattern).
+                </div>
+                
+                <div class="sample-config">
+                    <div class="config-item">
+                        <label for="entity-count">Number of Entity Records</label>
+                        <input type="number" id="entity-count" class="form-input" value="3" min="1" max="100">
+                    </div>
+                    <div class="config-item">
+                        <label for="line-count">Line Records per Entity</label>
+                        <input type="number" id="line-count" class="form-input" value="2" min="0" max="20">
+                    </div>
+                    <div class="config-item">
+                        <label for="module-count">Module Records per Entity</label>
+                        <input type="number" id="module-count" class="form-input" value="3" min="0" max="20">
+                    </div>
+                    <div class="config-item">
+                        <label for="start-id">Starting ID Number</label>
+                        <input type="number" id="start-id" class="form-input" value="1000" min="1">
+                    </div>
+                </div>
 
-            <div class="button-group">
-                <button class="btn btn-primary" onclick="addDataRow()">+ Add Record</button>
-                <button class="btn btn-success" onclick="generatePreview()">Generate Preview</button>
-                <button class="btn btn-warning" onclick="generateSampleData()">Generate Sample Data</button>
-                <button class="btn btn-danger" onclick="clearAllData()">Clear All Data</button>
+                <div class="button-group">
+                    <button class="btn btn-success" onclick="generateSampleData()">Generate Sample Data</button>
+                    <button class="btn btn-primary" onclick="generatePreview()">Generate Preview</button>
+                    <button class="btn btn-danger" onclick="clearAllData()">Clear All Data</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manual Data Entry Section -->
+        <div class="form-section">
+            <div class="form-section-header" onclick="toggleSection('manual-entry')">
+                <div class="form-section-title">
+                    <h2>Manual Data Entry</h2>
+                    <div class="section-description">Add and edit individual records</div>
+                </div>
+                <div class="collapse-arrow collapsed" id="manual-entry-arrow">▼</div>
+            </div>
+            <div class="form-section-content collapsed" id="manual-entry-content">
+                <div class="section-info">
+                    Manually add and edit record data. Records are grouped by Entity ID.
+                </div>
+                
+                <div id="data-entry-container">
+                    <!-- Data entry groups will be generated by JavaScript -->
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" onclick="addEntityGroup()">+ Add Entity Group</button>
+                </div>
             </div>
         </div>
 
         <!-- Output and Preview Section -->
         <div class="form-section">
-            <h2>File Output</h2>
-            
-            <!-- Statistics Panel -->
-            <div class="stats-panel">
-                <div class="stat-item">
-                    <span class="stat-value" id="record-count">0</span>
-                    <span class="stat-label">Records</span>
+            <div class="form-section-header" onclick="toggleSection('file-output')">
+                <div class="form-section-title">
+                    <h2>File Output</h2>
+                    <div class="section-description">Preview and download generated files</div>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-value" id="field-count">0</span>
-                    <span class="stat-label">Fields</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value" id="total-length">0</span>
-                    <span class="stat-label">Record Length</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-value" id="file-size">0</span>
-                    <span class="stat-label">Est. File Size (KB)</span>
-                </div>
+                <div class="collapse-arrow" id="file-output-arrow">▼</div>
             </div>
-
-            <!-- Preview Content -->
-            <div class="output-preview">
-                <h3>File Preview (First 10 Records)</h3>
-                <div class="preview-content" id="preview-content">
-                    Configure fields and add data to see preview...
+            <div class="form-section-content" id="file-output-content">
+                <!-- Statistics Panel -->
+                <div class="stats-panel">
+                    <div class="stat-item">
+                        <span class="stat-value" id="entity-record-count">0</span>
+                        <span class="stat-label">Entity Records</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="line-record-count">0</span>
+                        <span class="stat-label">Line Records</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="module-record-count">0</span>
+                        <span class="stat-label">Module Records</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="total-record-count">0</span>
+                        <span class="stat-label">Total Records</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="file-size">0</span>
+                        <span class="stat-label">Est. File Size (KB)</span>
+                    </div>
                 </div>
-            </div>
 
-            <div class="button-group">
-                <button class="btn btn-success" onclick="downloadFile()">Download File</button>
-                <button class="btn btn-primary" onclick="copyToClipboard()">Copy to Clipboard</button>
+                <!-- Preview Content -->
+                <div class="output-preview">
+                    <h3>File Preview (First 20 Records)</h3>
+                    <div class="preview-content" id="preview-content">
+                        Configure record types and generate data to see preview...
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-success" onclick="downloadFile()">Download File</button>
+                    <button class="btn btn-primary" onclick="copyToClipboard()">Copy to Clipboard</button>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Global variables to store field definitions and data
-        let fieldDefinitions = [];
-        let dataRecords = [];
+        // Global variables to store field definitions and data for each record type
+        let fieldDefinitions = {
+            E: [], // Entity fields
+            L: [], // Line fields  
+            M: []  // Module fields
+        };
+        
+        let dataRecords = []; // Array of entity groups, each containing E, L, and M records
+        let currentRecordType = 'E'; // Currently selected record type for field configuration
 
         /**
-         * Default field configuration for common use cases
-         * Each field has: name, type, length, and optional sample data
+         * Default field configurations for each record type
+         * E = Entity (main record), L = Line items, M = Module/detail records
          */
-        const defaultFields = [
-            { name: 'FirstName', type: 'text', length: 20 },
-            { name: 'LastName', type: 'text', length: 30 },
-            { name: 'Address', type: 'text', length: 50 },
-            { name: 'City', type: 'text', length: 25 },
-            { name: 'State', type: 'text', length: 2 },
-            { name: 'ZipCode', type: 'numeric', length: 5 },
-            { name: 'Phone', type: 'numeric', length: 10 },
-            { name: 'CustomerID', type: 'numeric', length: 8 }
-        ];
-
-        /**
-         * Sample data for generating test records
-         */
-        const sampleData = {
-            FirstName: ['John', 'Jane', 'Michael', 'Sarah', 'David', 'Lisa', 'Robert', 'Mary', 'James', 'Patricia'],
-            LastName: ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez'],
-            Address: ['123 Main St', '456 Oak Ave', '789 Pine Rd', '321 Elm St', '654 Maple Dr', '987 Cedar Ln', '147 Birch Way', '258 Spruce Ct'],
-            City: ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego', 'Dallas', 'San Jose'],
-            State: ['NY', 'CA', 'IL', 'TX', 'AZ', 'PA', 'TX', 'CA', 'TX', 'CA'],
-            ZipCode: ['10001', '90210', '60601', '77001', '85001', '19101', '78201', '92101', '75201', '95101']
+        const defaultFields = {
+            E: [
+                { name: 'EntityID', type: 'numeric', length: 8 },
+                { name: 'FirstName', type: 'text', length: 20 },
+                { name: 'LastName', type: 'text', length: 30 },
+                { name: 'Address', type: 'text', length: 50 },
+                { name: 'City', type: 'text', length: 25 },
+                { name: 'State', type: 'text', length: 2 },
+                { name: 'ZipCode', type: 'numeric', length: 5 }
+            ],
+            L: [
+                { name: 'EntityID', type: 'numeric', length: 8 },
+                { name: 'Company', type: 'text', length: 40 },
+                { name: 'Department', type: 'text', length: 20 },
+                { name: 'Position', type: 'text', length: 30 },
+                { name: 'Salary', type: 'numeric', length: 8 },
+                { name: 'StartDate', type: 'text', length: 10 }
+            ],
+            M: [
+                { name: 'EntityID', type: 'numeric', length: 8 },
+                { name: 'ModuleCode', type: 'alphanumeric', length: 6 },
+                { name: 'AccountNum', type: 'numeric', length: 12 },
+                { name: 'Amount', type: 'numeric', length: 10 },
+                { name: 'TransType', type: 'alphanumeric', length: 3 },
+                { name: 'Reference', type: 'alphanumeric', length: 15 }
+            ]
         };
 
         /**
-         * Initialize the page with default field configuration
+         * Sample data pools for generating realistic test data
+         */
+        const sampleDataPools = {
+            FirstName: ['John', 'Jane', 'Michael', 'Sarah', 'David', 'Lisa', 'Robert', 'Mary', 'James', 'Patricia', 'Christopher', 'Jennifer', 'Daniel', 'Elizabeth', 'Matthew'],
+            LastName: ['Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez', 'Gonzalez', 'Wilson', 'Anderson'],
+            Address: ['123 Main St', '456 Oak Ave', '789 Pine Rd', '321 Elm St', '654 Maple Dr', '987 Cedar Ln', '147 Birch Way', '258 Spruce Ct', '369 Willow Blvd', '741 Ash Ter'],
+            City: ['New York', 'Los Angeles', 'Chicago', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego', 'Dallas', 'San Jose', 'Austin', 'Jacksonville'],
+            State: ['NY', 'CA', 'IL', 'TX', 'AZ', 'PA', 'TX', 'CA', 'TX', 'CA', 'TX', 'FL'],
+            ZipCode: ['10001', '90210', '60601', '77001', '85001', '19101', '78201', '92101', '75201', '95101', '73301', '32099'],
+            Company: ['Tech Corp', 'Global Industries', 'Innovation Ltd', 'Dynamic Systems', 'Future Solutions', 'Advanced Analytics', 'Digital Ventures', 'Smart Technologies'],
+            Department: ['Engineering', 'Marketing', 'Finance', 'Operations', 'HR', 'Sales', 'IT', 'Legal', 'R&D', 'Customer Service'],
+            Position: ['Manager', 'Senior Developer', 'Analyst', 'Coordinator', 'Specialist', 'Director', 'Associate', 'Lead Engineer', 'Consultant', 'Administrator'],
+            ModuleCode: ['ACC001', 'FIN002', 'INV003', 'PAY004', 'RPT005', 'ADM006', 'SEC007', 'AUD008', 'TAX009', 'BUD010'],
+            TransType: ['CR', 'DR', 'ADJ', 'REV', 'REF', 'FEE', 'INT', 'TAX', 'PEN', 'DIS']
+        };
+
+        /**
+         * Toggle the visibility of a form section
+         * @param {string} sectionId - The ID of the section to toggle
+         */
+        function toggleSection(sectionId) {
+            const content = document.getElementById(`${sectionId}-content`);
+            const arrow = document.getElementById(`${sectionId}-arrow`);
+            const header = content.parentElement.querySelector('.form-section-header');
+            
+            if (content.classList.contains('collapsed')) {
+                // Expand section
+                content.classList.remove('collapsed');
+                arrow.classList.remove('collapsed');
+                header.classList.remove('collapsed');
+                console.log(`Expanded section: ${sectionId}`);
+            } else {
+                // Collapse section
+                content.classList.add('collapsed');
+                arrow.classList.add('collapsed');
+                header.classList.add('collapsed');
+                console.log(`Collapsed section: ${sectionId}`);
+            }
+        }
+
+        /**
+         * Initialize the application when the page loads
          */
         function initializePage() {
-            console.log('Initializing Pipe Delimited File Generator...');
+            console.log('Initializing Hierarchical Pipe Delimited File Generator...');
             
-            // Load default fields
-            fieldDefinitions = [...defaultFields];
+            // Load default field configurations for all record types
+            fieldDefinitions.E = [...defaultFields.E];
+            fieldDefinitions.L = [...defaultFields.L];
+            fieldDefinitions.M = [...defaultFields.M];
+            
+            // Render the initial UI
             renderFieldDefinitions();
             renderDataEntryForm();
             updateStatistics();
             
-            console.log('Page initialized with', fieldDefinitions.length, 'default fields');
+            // Collapse the Manual Data Entry section by default since it starts empty
+            // This is already set in the HTML with the 'collapsed' class
+            
+            console.log('Page initialized with default field configurations');
+            console.log('E fields:', fieldDefinitions.E.length);
+            console.log('L fields:', fieldDefinitions.L.length); 
+            console.log('M fields:', fieldDefinitions.M.length);
         }
 
         /**
-         * Render the field definition configuration UI
+         * Switch between record type tabs for field configuration
+         * @param {string} recordType - The record type ('E', 'L', or 'M')
+         */
+        function switchRecordType(recordType) {
+            // Update button states
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Hide all panels
+            document.querySelectorAll('.field-config-panel').forEach(panel => {
+                panel.style.display = 'none';
+            });
+            
+            // Show selected panel
+            document.getElementById(`field-config-${recordType}`).style.display = 'block';
+            
+            currentRecordType = recordType;
+            renderFieldDefinitions();
+            
+            console.log('Switched to record type:', recordType);
+        }
+
+        /**
+         * Render field definitions for the currently selected record type
          */
         function renderFieldDefinitions() {
-            const container = document.getElementById('field-definitions');
+            const container = document.getElementById(`field-definitions-${currentRecordType}`);
+            if (!container) return;
+            
             container.innerHTML = '';
+            const fields = fieldDefinitions[currentRecordType];
 
-            fieldDefinitions.forEach((field, index) => {
+            fields.forEach((field, index) => {
                 const fieldDiv = document.createElement('div');
                 fieldDiv.className = 'field-config-grid';
                 fieldDiv.innerHTML = `
                     <input type="text" class="form-input" value="${field.name}" 
-                           onchange="updateFieldName(${index}, this.value)" 
+                           onchange="updateFieldName('${currentRecordType}', ${index}, this.value)" 
                            placeholder="Field name">
-                    <select class="form-select" onchange="updateFieldType(${index}, this.value)">
+                    <select class="form-select" onchange="updateFieldType('${currentRecordType}', ${index}, this.value)">
                         <option value="text" ${field.type === 'text' ? 'selected' : ''}>Text</option>
                         <option value="numeric" ${field.type === 'numeric' ? 'selected' : ''}>Numeric</option>
                         <option value="alphanumeric" ${field.type === 'alphanumeric' ? 'selected' : ''}>Alphanumeric</option>
                     </select>
                     <input type="number" class="form-input length-input" value="${field.length}" 
-                           onchange="updateFieldLength(${index}, this.value)" 
+                           onchange="updateFieldLength('${currentRecordType}', ${index}, this.value)" 
                            min="1" max="255" placeholder="Length">
-                    <button class="btn btn-danger" onclick="removeField(${index})" 
+                    <button class="btn btn-danger" onclick="removeField('${currentRecordType}', ${index})" 
                             style="padding: 8px 12px; font-size: 0.8rem;">×</button>
                 `;
                 container.appendChild(fieldDiv);
@@ -476,168 +820,403 @@
         }
 
         /**
-         * Render the data entry form based on current field definitions
-         */
-        function renderDataEntryForm() {
-            const container = document.getElementById('data-entry-container');
-            container.innerHTML = '';
-
-            // Create header row
-            const headerDiv = document.createElement('div');
-            headerDiv.className = 'data-row';
-            headerDiv.style.background = 'rgba(79, 195, 247, 0.1)';
-            headerDiv.style.gridTemplateColumns = `repeat(${fieldDefinitions.length + 1}, 1fr)`;
-            
-            let headerHTML = '';
-            fieldDefinitions.forEach(field => {
-                headerHTML += `<div class="field-config-header">${field.name} (${field.length})</div>`;
-            });
-            headerHTML += `<div class="field-config-header">Action</div>`;
-            headerDiv.innerHTML = headerHTML;
-            container.appendChild(headerDiv);
-
-            // Create data entry rows
-            dataRecords.forEach((record, recordIndex) => {
-                const rowDiv = document.createElement('div');
-                rowDiv.className = 'data-row';
-                rowDiv.style.gridTemplateColumns = `repeat(${fieldDefinitions.length + 1}, 1fr)`;
-                
-                let rowHTML = '';
-                fieldDefinitions.forEach((field, fieldIndex) => {
-                    const value = record[field.name] || '';
-                    rowHTML += `
-                        <input type="text" class="form-input" 
-                               value="${value}" 
-                               onchange="updateDataValue(${recordIndex}, '${field.name}', this.value)"
-                               placeholder="${field.type === 'numeric' ? '123...' : 'Enter ' + field.name}">
-                    `;
-                });
-                rowHTML += `
-                    <button class="btn btn-danger" onclick="removeDataRow(${recordIndex})" 
-                            style="padding: 8px 12px; font-size: 0.8rem;">Delete</button>
-                `;
-                rowDiv.innerHTML = rowHTML;
-                container.appendChild(rowDiv);
-            });
-        }
-
-        /**
-         * Add a new field definition
+         * Add a new field to the current record type
          */
         function addField() {
             const newField = {
-                name: `Field${fieldDefinitions.length + 1}`,
+                name: `Field${fieldDefinitions[currentRecordType].length + 1}`,
                 type: 'text',
                 length: 10
             };
             
-            fieldDefinitions.push(newField);
+            fieldDefinitions[currentRecordType].push(newField);
             renderFieldDefinitions();
-            renderDataEntryForm();
             updateStatistics();
             
-            console.log('Added new field:', newField);
+            console.log(`Added new ${currentRecordType} field:`, newField);
         }
 
         /**
-         * Remove a field definition by index
+         * Remove a field from the specified record type
+         * @param {string} recordType - The record type ('E', 'L', or 'M')
+         * @param {number} index - Index of the field to remove
          */
-        function removeField(index) {
-            if (fieldDefinitions.length <= 1) {
-                alert('Cannot remove the last field. At least one field is required.');
+        function removeField(recordType, index) {
+            if (fieldDefinitions[recordType].length <= 1) {
+                alert(`Cannot remove the last ${recordType} field. At least one field is required per record type.`);
                 return;
             }
             
-            const removedField = fieldDefinitions.splice(index, 1)[0];
+            const removedField = fieldDefinitions[recordType].splice(index, 1)[0];
             
-            // Remove the field from all data records
-            dataRecords.forEach(record => {
-                delete record[removedField.name];
+            // Remove the field from all data records of this type
+            dataRecords.forEach(entityGroup => {
+                if (entityGroup[recordType]) {
+                    entityGroup[recordType].forEach(record => {
+                        delete record[removedField.name];
+                    });
+                }
             });
             
             renderFieldDefinitions();
             renderDataEntryForm();
             updateStatistics();
             
-            console.log('Removed field:', removedField);
+            console.log(`Removed ${recordType} field:`, removedField);
         }
 
         /**
-         * Update field name
+         * Update field name for a specific record type
+         * @param {string} recordType - The record type ('E', 'L', or 'M')
+         * @param {number} index - Index of the field to update
+         * @param {string} newName - New field name
          */
-        function updateFieldName(index, newName) {
-            const oldName = fieldDefinitions[index].name;
-            fieldDefinitions[index].name = newName;
+        function updateFieldName(recordType, index, newName) {
+            const oldName = fieldDefinitions[recordType][index].name;
+            fieldDefinitions[recordType][index].name = newName;
             
             // Update all data records with the new field name
-            dataRecords.forEach(record => {
-                if (record[oldName] !== undefined) {
-                    record[newName] = record[oldName];
-                    delete record[oldName];
+            dataRecords.forEach(entityGroup => {
+                if (entityGroup[recordType]) {
+                    entityGroup[recordType].forEach(record => {
+                        if (record[oldName] !== undefined) {
+                            record[newName] = record[oldName];
+                            delete record[oldName];
+                        }
+                    });
                 }
             });
             
             renderDataEntryForm();
-            console.log(`Field renamed from "${oldName}" to "${newName}"`);
+            console.log(`${recordType} field renamed from "${oldName}" to "${newName}"`);
         }
 
         /**
-         * Update field type
+         * Update field type for a specific record type
+         * @param {string} recordType - The record type ('E', 'L', or 'M')
+         * @param {number} index - Index of the field to update
+         * @param {string} newType - New field type
          */
-        function updateFieldType(index, newType) {
-            fieldDefinitions[index].type = newType;
-            console.log(`Field "${fieldDefinitions[index].name}" type changed to:`, newType);
+        function updateFieldType(recordType, index, newType) {
+            fieldDefinitions[recordType][index].type = newType;
+            console.log(`${recordType} field "${fieldDefinitions[recordType][index].name}" type changed to:`, newType);
         }
 
         /**
-         * Update field length
+         * Update field length for a specific record type
+         * @param {string} recordType - The record type ('E', 'L', or 'M')
+         * @param {number} index - Index of the field to update
+         * @param {string} newLength - New field length
          */
-        function updateFieldLength(index, newLength) {
-            fieldDefinitions[index].length = parseInt(newLength) || 1;
+        function updateFieldLength(recordType, index, newLength) {
+            fieldDefinitions[recordType][index].length = parseInt(newLength) || 1;
             renderDataEntryForm();
             updateStatistics();
-            console.log(`Field "${fieldDefinitions[index].name}" length changed to:`, newLength);
+            console.log(`${recordType} field "${fieldDefinitions[recordType][index].name}" length changed to:`, newLength);
         }
 
         /**
-         * Add a new data row
+         * Generate sample data based on user configuration
          */
-        function addDataRow() {
+        function generateSampleData() {
+            const entityCount = parseInt(document.getElementById('entity-count').value) || 3;
+            const lineCount = parseInt(document.getElementById('line-count').value) || 2;
+            const moduleCount = parseInt(document.getElementById('module-count').value) || 3;
+            let startId = parseInt(document.getElementById('start-id').value) || 1000;
+            
+            console.log(`Generating sample data: ${entityCount} entities, ${lineCount} lines each, ${moduleCount} modules each`);
+            
+            dataRecords = [];
+            
+            // Generate entity groups
+            for (let e = 0; e < entityCount; e++) {
+                const currentId = startId + e;
+                const entityGroup = {
+                    entityId: currentId,
+                    E: [], // Entity records (typically 1)
+                    L: [], // Line records
+                    M: []  // Module records
+                };
+                
+                // Generate Entity record
+                const entityRecord = {};
+                fieldDefinitions.E.forEach(field => {
+                    entityRecord[field.name] = generateSampleValue(field, currentId, 'E');
+                });
+                entityGroup.E.push(entityRecord);
+                
+                // Generate Line records
+                for (let l = 0; l < lineCount; l++) {
+                    const lineRecord = {};
+                    fieldDefinitions.L.forEach(field => {
+                        lineRecord[field.name] = generateSampleValue(field, currentId, 'L', l);
+                    });
+                    entityGroup.L.push(lineRecord);
+                }
+                
+                // Generate Module records
+                for (let m = 0; m < moduleCount; m++) {
+                    const moduleRecord = {};
+                    fieldDefinitions.M.forEach(field => {
+                        moduleRecord[field.name] = generateSampleValue(field, currentId, 'M', m);
+                    });
+                    entityGroup.M.push(moduleRecord);
+                }
+                
+                dataRecords.push(entityGroup);
+            }
+            
+            renderDataEntryForm();
+            generatePreview();
+            
+            console.log(`Generated ${dataRecords.length} entity groups with sample data`);
+        }
+
+        /**
+         * Generate a sample value for a field based on its characteristics
+         * @param {object} field - Field definition
+         * @param {number} entityId - Current entity ID
+         * @param {string} recordType - Record type ('E', 'L', 'M')
+         * @param {number} index - Record index within the type (for L and M records)
+         * @returns {string} - Generated sample value
+         */
+        function generateSampleValue(field, entityId, recordType, index = 0) {
+            const fieldName = field.name;
+            
+            // Always use EntityID for ID fields
+            if (fieldName.toLowerCase().includes('entityid') || fieldName.toLowerCase() === 'id') {
+                return String(entityId);
+            }
+            
+            // Use sample data pools if available
+            if (sampleDataPools[fieldName]) {
+                const pool = sampleDataPools[fieldName];
+                return pool[entityId % pool.length];
+            }
+            
+            // Generate based on field type and name patterns
+            if (field.type === 'numeric') {
+                if (fieldName.toLowerCase().includes('salary')) {
+                    return String(45000 + (entityId * 1000) + (index * 500));
+                } else if (fieldName.toLowerCase().includes('amount')) {
+                    return String(Math.floor(Math.random() * 999999) + 100);
+                } else if (fieldName.toLowerCase().includes('account')) {
+                    return String(100000000000 + entityId * 100 + index);
+                } else if (fieldName.toLowerCase().includes('phone')) {
+                    return '555' + String(Math.floor(Math.random() * 9000000) + 1000000);
+                } else {
+                    // Generic numeric value
+                    const maxVal = Math.pow(10, Math.min(field.length - 1, 8)) - 1;
+                    return String(Math.floor(Math.random() * maxVal) + 1);
+                }
+            } else if (field.type === 'alphanumeric') {
+                if (fieldName.toLowerCase().includes('module') || fieldName.toLowerCase().includes('code')) {
+                    const codes = sampleDataPools.ModuleCode || ['MOD001', 'MOD002', 'MOD003'];
+                    return codes[(entityId + index) % codes.length];
+                } else if (fieldName.toLowerCase().includes('trans') || fieldName.toLowerCase().includes('type')) {
+                    const types = sampleDataPools.TransType || ['CR', 'DR', 'ADJ'];
+                    return types[index % types.length];
+                } else if (fieldName.toLowerCase().includes('ref')) {
+                    return `REF${String(entityId).padStart(4, '0')}${String(index).padStart(2, '0')}`;
+                } else {
+                    return `${recordType}${String(entityId).padStart(4, '0')}${String(index).padStart(2, '0')}`;
+                }
+            } else {
+                // Text field
+                if (fieldName.toLowerCase().includes('date')) {
+                    const baseDate = new Date(2020 + (entityId % 4), index % 12, (entityId % 28) + 1);
+                    return baseDate.toISOString().slice(0, 10);
+                } else {
+                    return `${fieldName}${entityId}_${index}`;
+                }
+            }
+        }
+
+        /**
+         * Add a new entity group for manual data entry
+         */
+        function addEntityGroup() {
+            const newEntityId = Math.max(...dataRecords.map(g => g.entityId), 999) + 1;
+            
+            const entityGroup = {
+                entityId: newEntityId,
+                E: [{}], // Start with one empty E record
+                L: [{}], // Start with one empty L record
+                M: [{}]  // Start with one empty M record
+            };
+            
+            // Initialize empty records with field structure
+            ['E', 'L', 'M'].forEach(recordType => {
+                fieldDefinitions[recordType].forEach(field => {
+                    entityGroup[recordType][0][field.name] = '';
+                });
+            });
+            
+            dataRecords.push(entityGroup);
+            renderDataEntryForm();
+            updateStatistics();
+            
+            console.log('Added new entity group with ID:', newEntityId);
+        }
+
+        /**
+         * Render the data entry form showing all entity groups
+         */
+        function renderDataEntryForm() {
+            const container = document.getElementById('data-entry-container');
+            container.innerHTML = '';
+            
+            if (dataRecords.length === 0) {
+                container.innerHTML = '<p style="color: #90a4ae; text-align: center; padding: 40px;">No data records. Generate sample data or add an entity group to get started.</p>';
+                return;
+            }
+            
+            dataRecords.forEach((entityGroup, groupIndex) => {
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'record-group';
+                groupDiv.innerHTML = `
+                    <h4>Entity Group ${entityGroup.entityId}</h4>
+                    <div id="entity-group-${groupIndex}"></div>
+                    <div style="margin-top: 15px;">
+                        <button class="btn btn-primary" onclick="addRecordToGroup(${groupIndex}, 'L')" style="padding: 6px 12px; font-size: 0.8rem; margin-right: 10px;">+ Add L Record</button>
+                        <button class="btn btn-primary" onclick="addRecordToGroup(${groupIndex}, 'M')" style="padding: 6px 12px; font-size: 0.8rem; margin-right: 10px;">+ Add M Record</button>
+                        <button class="btn btn-danger" onclick="removeEntityGroup(${groupIndex})" style="padding: 6px 12px; font-size: 0.8rem;">Delete Group</button>
+                    </div>
+                `;
+                container.appendChild(groupDiv);
+                
+                // Render records for each type in this group
+                renderEntityGroupRecords(groupIndex);
+            });
+        }
+
+        /**
+         * Render records for a specific entity group
+         * @param {number} groupIndex - Index of the entity group
+         */
+        function renderEntityGroupRecords(groupIndex) {
+            const container = document.getElementById(`entity-group-${groupIndex}`);
+            if (!container) return;
+            
+            container.innerHTML = '';
+            const entityGroup = dataRecords[groupIndex];
+            
+            // Render each record type
+            ['E', 'L', 'M'].forEach(recordType => {
+                if (entityGroup[recordType] && entityGroup[recordType].length > 0) {
+                    const typeSection = document.createElement('div');
+                    typeSection.style.marginBottom = '20px';
+                    
+                    const typeHeader = document.createElement('h5');
+                    typeHeader.innerHTML = `<span class="record-type-indicator indicator-${recordType.toLowerCase()}">${recordType}</span> Records (${entityGroup[recordType].length})`;
+                    typeHeader.style.color = '#cfd8dc';
+                    typeHeader.style.marginBottom = '10px';
+                    typeSection.appendChild(typeHeader);
+                    
+                    // Render each record of this type
+                    entityGroup[recordType].forEach((record, recordIndex) => {
+                        const recordDiv = document.createElement('div');
+                        recordDiv.className = 'data-row';
+                        recordDiv.style.gridTemplateColumns = `repeat(${fieldDefinitions[recordType].length + 1}, 1fr)`;
+                        
+                        let recordHTML = '';
+                        fieldDefinitions[recordType].forEach(field => {
+                            const value = record[field.name] || '';
+                            recordHTML += `
+                                <div style="display: flex; flex-direction: column;">
+                                    <label style="font-size: 0.8rem; color: #90a4ae; margin-bottom: 4px;">${field.name} (${field.length})</label>
+                                    <input type="text" class="form-input" 
+                                           value="${value}" 
+                                           onchange="updateRecordValue(${groupIndex}, '${recordType}', ${recordIndex}, '${field.name}', this.value)"
+                                           placeholder="${field.type === 'numeric' ? '123...' : 'Enter ' + field.name}"
+                                           style="padding: 8px 10px; font-size: 0.9rem;">
+                                </div>
+                            `;
+                        });
+                        
+                        // Add delete button (but not for the first E record)
+                        if (recordType !== 'E' || recordIndex > 0) {
+                            recordHTML += `
+                                <button class="btn btn-danger" onclick="removeRecord(${groupIndex}, '${recordType}', ${recordIndex})" 
+                                        style="padding: 6px 10px; font-size: 0.8rem; height: fit-content; align-self: end;">Delete</button>
+                            `;
+                        } else {
+                            recordHTML += '<div></div>'; // Empty space for alignment
+                        }
+                        
+                        recordDiv.innerHTML = recordHTML;
+                        typeSection.appendChild(recordDiv);
+                    });
+                    
+                    container.appendChild(typeSection);
+                }
+            });
+        }
+
+        /**
+         * Add a record to a specific entity group
+         * @param {number} groupIndex - Index of the entity group
+         * @param {string} recordType - Type of record to add ('L' or 'M')
+         */
+        function addRecordToGroup(groupIndex, recordType) {
             const newRecord = {};
-            fieldDefinitions.forEach(field => {
+            fieldDefinitions[recordType].forEach(field => {
                 newRecord[field.name] = '';
             });
             
-            dataRecords.push(newRecord);
-            renderDataEntryForm();
+            dataRecords[groupIndex][recordType].push(newRecord);
+            renderEntityGroupRecords(groupIndex);
             updateStatistics();
             
-            console.log('Added new data row');
+            console.log(`Added ${recordType} record to group ${groupIndex}`);
         }
 
         /**
-         * Remove a data row by index
+         * Remove a specific record from an entity group
+         * @param {number} groupIndex - Index of the entity group
+         * @param {string} recordType - Type of record ('E', 'L', or 'M')
+         * @param {number} recordIndex - Index of the record within the type
          */
-        function removeDataRow(index) {
-            dataRecords.splice(index, 1);
-            renderDataEntryForm();
+        function removeRecord(groupIndex, recordType, recordIndex) {
+            dataRecords[groupIndex][recordType].splice(recordIndex, 1);
+            renderEntityGroupRecords(groupIndex);
             updateStatistics();
-            console.log('Removed data row at index:', index);
+            
+            console.log(`Removed ${recordType} record ${recordIndex} from group ${groupIndex}`);
         }
 
         /**
-         * Update a data value in a specific record
+         * Remove an entire entity group
+         * @param {number} groupIndex - Index of the entity group to remove
          */
-        function updateDataValue(recordIndex, fieldName, value) {
-            if (!dataRecords[recordIndex]) {
-                dataRecords[recordIndex] = {};
+        function removeEntityGroup(groupIndex) {
+            if (confirm('Are you sure you want to delete this entire entity group?')) {
+                dataRecords.splice(groupIndex, 1);
+                renderDataEntryForm();
+                updateStatistics();
+                console.log('Removed entity group at index:', groupIndex);
             }
-            dataRecords[recordIndex][fieldName] = value;
-            console.log(`Updated ${fieldName} in record ${recordIndex} to:`, value);
         }
 
         /**
-         * Pad a value with zeros based on field configuration
+         * Update a specific field value in a record
+         * @param {number} groupIndex - Index of the entity group
+         * @param {string} recordType - Type of record ('E', 'L', or 'M')
+         * @param {number} recordIndex - Index of the record within the type
+         * @param {string} fieldName - Name of the field to update
+         * @param {string} value - New value
+         */
+        function updateRecordValue(groupIndex, recordType, recordIndex, fieldName, value) {
+            if (!dataRecords[groupIndex] || !dataRecords[groupIndex][recordType] || !dataRecords[groupIndex][recordType][recordIndex]) {
+                return;
+            }
+            
+            dataRecords[groupIndex][recordType][recordIndex][fieldName] = value;
+            console.log(`Updated ${recordType}[${recordIndex}].${fieldName} in group ${groupIndex} to:`, value);
+        }
+
+        /**
+         * Pad a value with zeros or spaces based on field configuration
          * @param {string} value - The value to pad
          * @param {object} field - The field definition containing type and length
          * @returns {string} - The padded value
@@ -655,14 +1234,14 @@
                 // Left pad numeric fields with zeros
                 return strValue.padStart(field.length, '0');
             } else {
-                // Right pad text fields with spaces, then replace spaces with zeros if needed
-                return strValue.padEnd(field.length, '0');
+                // Right pad text/alphanumeric fields with spaces
+                return strValue.padEnd(field.length, ' ');
             }
         }
 
         /**
-         * Generate the pipe-delimited output
-         * @returns {string} - The formatted output
+         * Generate the complete pipe-delimited output with interleaved L and M records
+         * @returns {string} - The formatted output with E, then interleaved L/M records
          */
         function generateOutput() {
             if (dataRecords.length === 0) {
@@ -671,18 +1250,45 @@
 
             let output = '';
             
-            // Generate header row (optional - commented out for now)
-            // const header = fieldDefinitions.map(field => field.name.padEnd(field.length, '0')).join('|');
-            // output += header + '\n';
-            
-            // Generate data rows
-            dataRecords.forEach((record, index) => {
-                const row = fieldDefinitions.map(field => {
-                    const value = record[field.name] || '';
-                    return padValue(value, field);
-                }).join('|');
+            dataRecords.forEach(entityGroup => {
+                // Output E records first
+                if (entityGroup.E && entityGroup.E.length > 0) {
+                    entityGroup.E.forEach(record => {
+                        const row = ['E'].concat(fieldDefinitions.E.map(field => {
+                            const value = record[field.name] || '';
+                            return padValue(value, field);
+                        })).join('|');
+                        output += row + '\n';
+                    });
+                }
                 
-                output += row + '\n';
+                // Determine the maximum number of L or M records to handle cases where counts differ
+                const maxLRecords = entityGroup.L ? entityGroup.L.length : 0;
+                const maxMRecords = entityGroup.M ? entityGroup.M.length : 0;
+                const maxSubRecords = Math.max(maxLRecords, maxMRecords);
+                
+                // Interleave L and M records - each L followed by corresponding M records
+                for (let i = 0; i < maxSubRecords; i++) {
+                    // Output L record if it exists at this index
+                    if (entityGroup.L && entityGroup.L[i]) {
+                        const lRecord = entityGroup.L[i];
+                        const lRow = ['L'].concat(fieldDefinitions.L.map(field => {
+                            const value = lRecord[field.name] || '';
+                            return padValue(value, field);
+                        })).join('|');
+                        output += lRow + '\n';
+                    }
+                    
+                    // Output M record if it exists at this index
+                    if (entityGroup.M && entityGroup.M[i]) {
+                        const mRecord = entityGroup.M[i];
+                        const mRow = ['M'].concat(fieldDefinitions.M.map(field => {
+                            const value = mRecord[field.name] || '';
+                            return padValue(value, field);
+                        })).join('|');
+                        output += mRow + '\n';
+                    }
+                }
             });
             
             return output;
@@ -695,77 +1301,56 @@
             const output = generateOutput();
             const previewContainer = document.getElementById('preview-content');
             
-            // Show only first 10 lines for preview
+            // Show only first 20 lines for preview
             const lines = output.split('\n');
-            const previewLines = lines.slice(0, Math.min(10, lines.length - 1)); // -1 to remove empty last line
+            const previewLines = lines.slice(0, Math.min(20, lines.length - 1)); // -1 to remove empty last line
             
             if (previewLines.length > 0) {
                 previewContainer.textContent = previewLines.join('\n');
-                if (lines.length > 11) { // 10 data lines + 1 empty
-                    previewContainer.textContent += '\n... (' + (lines.length - 11) + ' more records)';
+                if (lines.length > 21) { // 20 data lines + 1 empty
+                    previewContainer.textContent += '\n... (' + (lines.length - 21) + ' more records)';
                 }
             } else {
-                previewContainer.textContent = 'No data to preview. Add some records first.';
+                previewContainer.textContent = 'No data to preview. Generate sample data or add entity groups first.';
             }
             
             updateStatistics();
-            console.log('Preview generated for', dataRecords.length, 'records');
+            console.log('Preview generated for', dataRecords.length, 'entity groups');
         }
 
         /**
-         * Update statistics display
+         * Update statistics display with current data counts
          */
         function updateStatistics() {
-            const recordCount = dataRecords.length;
-            const fieldCount = fieldDefinitions.length;
-            const recordLength = fieldDefinitions.reduce((sum, field) => sum + field.length, 0) + (fieldCount - 1); // +1 for each pipe separator
-            const estimatedFileSize = Math.ceil((recordLength + 1) * recordCount / 1024); // +1 for newline, convert to KB
+            let entityCount = 0;
+            let lineCount = 0;
+            let moduleCount = 0;
+            let totalRecords = 0;
             
-            document.getElementById('record-count').textContent = recordCount;
-            document.getElementById('field-count').textContent = fieldCount;
-            document.getElementById('total-length').textContent = recordLength;
+            dataRecords.forEach(group => {
+                entityCount += group.E ? group.E.length : 0;
+                lineCount += group.L ? group.L.length : 0;
+                moduleCount += group.M ? group.M.length : 0;
+            });
+            
+            totalRecords = entityCount + lineCount + moduleCount;
+            
+            // Calculate estimated file size
+            let recordLength = 0;
+            ['E', 'L', 'M'].forEach(type => {
+                if (fieldDefinitions[type] && fieldDefinitions[type].length > 0) {
+                    const typeLength = 1 + fieldDefinitions[type].reduce((sum, field) => sum + field.length, 0) + fieldDefinitions[type].length; // +1 for type, +length for pipes
+                    recordLength = Math.max(recordLength, typeLength);
+                }
+            });
+            
+            const estimatedFileSize = Math.ceil((recordLength + 1) * totalRecords / 1024); // +1 for newline, convert to KB
+            
+            document.getElementById('entity-record-count').textContent = entityCount;
+            document.getElementById('line-record-count').textContent = lineCount;
+            document.getElementById('module-record-count').textContent = moduleCount;
+            document.getElementById('total-record-count').textContent = totalRecords;
             document.getElementById('file-size').textContent = estimatedFileSize;
-        }
-
-        /**
-         * Generate sample data for testing
-         */
-        function generateSampleData() {
-            const sampleCount = 5;
-            dataRecords = [];
-            
-            for (let i = 0; i < sampleCount; i++) {
-                const record = {};
-                
-                fieldDefinitions.forEach(field => {
-                    let value = '';
-                    
-                    // Generate appropriate sample data based on field name and type
-                    if (sampleData[field.name]) {
-                        const samples = sampleData[field.name];
-                        value = samples[Math.floor(Math.random() * samples.length)];
-                    } else if (field.type === 'numeric') {
-                        if (field.name.toLowerCase().includes('id')) {
-                            value = String(1000000 + i);
-                        } else if (field.name.toLowerCase().includes('phone')) {
-                            value = '555' + String(Math.floor(Math.random() * 9000000) + 1000000);
-                        } else {
-                            value = String(Math.floor(Math.random() * Math.pow(10, field.length - 1)) + Math.pow(10, field.length - 2));
-                        }
-                    } else {
-                        value = `Sample${i + 1}`;
-                    }
-                    
-                    record[field.name] = value;
-                });
-                
-                dataRecords.push(record);
-            }
-            
-            renderDataEntryForm();
-            generatePreview();
-            
-            console.log('Generated', sampleCount, 'sample records');
         }
 
         /**
@@ -780,7 +1365,7 @@
             if (confirm('Are you sure you want to clear all data records?')) {
                 dataRecords = [];
                 renderDataEntryForm();
-                document.getElementById('preview-content').textContent = 'Configure fields and add data to see preview...';
+                document.getElementById('preview-content').textContent = 'Configure record types and generate data to see preview...';
                 updateStatistics();
                 console.log('All data records cleared');
             }
@@ -791,13 +1376,17 @@
          */
         function resetFields() {
             if (confirm('Are you sure you want to reset to default field configuration? This will clear all data.')) {
-                fieldDefinitions = [...defaultFields];
+                fieldDefinitions.E = [...defaultFields.E];
+                fieldDefinitions.L = [...defaultFields.L];
+                fieldDefinitions.M = [...defaultFields.M];
                 dataRecords = [];
+                
                 renderFieldDefinitions();
                 renderDataEntryForm();
-                document.getElementById('preview-content').textContent = 'Configure fields and add data to see preview...';
+                document.getElementById('preview-content').textContent = 'Configure record types and generate data to see preview...';
                 updateStatistics();
-                console.log('Reset to default field configuration');
+                
+                console.log('Reset to default field configurations');
             }
         }
 
@@ -806,7 +1395,7 @@
          */
         function downloadFile() {
             if (dataRecords.length === 0) {
-                alert('No data to download. Please add some records first.');
+                alert('No data to download. Please generate sample data or add entity groups first.');
                 return;
             }
             
@@ -816,7 +1405,7 @@
             
             const link = document.createElement('a');
             link.href = url;
-            link.download = `pipe_delimited_data_${new Date().toISOString().slice(0, 10)}.txt`;
+            link.download = `hierarchical_pipe_data_${new Date().toISOString().slice(0, 10)}.txt`;
             link.click();
             
             URL.revokeObjectURL(url);
@@ -828,7 +1417,7 @@
          */
         function copyToClipboard() {
             if (dataRecords.length === 0) {
-                alert('No data to copy. Please add some records first.');
+                alert('No data to copy. Please generate sample data or add entity groups first.');
                 return;
             }
             
@@ -847,7 +1436,7 @@
                 fallbackCopyToClipboard(output);
             }
             
-            console.log('Copy to clipboard requested for', dataRecords.length, 'records');
+            console.log('Copy to clipboard requested for', dataRecords.length, 'entity groups');
         }
 
         /**
@@ -897,26 +1486,12 @@
                 }
             }
             
-            // Ctrl+D or Cmd+D to generate sample data
-            if ((event.ctrlKey || event.metaKey) && event.key === 'd') {
+            // Ctrl+G or Cmd+G to generate sample data
+            if ((event.ctrlKey || event.metaKey) && event.key === 'g') {
                 event.preventDefault();
                 generateSampleData();
             }
         });
-
-        /**
-         * Add input validation and formatting
-         */
-        function validateFieldInput(input, fieldType) {
-            if (fieldType === 'numeric') {
-                // Remove non-numeric characters for numeric fields
-                input.value = input.value.replace(/[^0-9]/g, '');
-            } else if (fieldType === 'alphanumeric') {
-                // Remove special characters for alphanumeric fields
-                input.value = input.value.replace(/[^a-zA-Z0-9]/g, '');
-            }
-            // Text fields allow all characters
-        }
 
         /**
          * Auto-save functionality to prevent data loss
@@ -940,14 +1515,14 @@
          * Initialize the application when the page loads
          */
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Pipe Delimited File Generator loaded successfully');
+            console.log('Hierarchical Pipe Delimited File Generator loaded successfully');
             initializePage();
             
             // Display keyboard shortcuts info
             console.log('Keyboard shortcuts:');
             console.log('- Ctrl/Cmd + Enter: Generate Preview');
             console.log('- Ctrl/Cmd + S: Download File');
-            console.log('- Ctrl/Cmd + D: Generate Sample Data');
+            console.log('- Ctrl/Cmd + G: Generate Sample Data');
         });
 
         /**
